@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>🔥 A股异动监控</title>
+<style>
+:root{--bg:#0f1117;--bg2:#1a1d27;--card:#212433;--hover:#2a2d3a;--border:#2e3140;--t:#e8eaed;--t2:#9aa0a6;--t3:#6b7280;--r:#ef4444;--o:#f59e0b;--g:#22c55e;--b:#3b82f6;--p:#8b5cf6;--c:#06b6d4}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif;background:var(--bg);color:var(--t);height:100vh;display:flex;flex-direction:column;overflow:hidden}
+#bar{display:flex;align-items:center;padding:10px 20px;background:var(--bg2);border-bottom:1px solid var(--border);gap:16px;flex-shrink:0}
+.logo{font-size:17px;font-weight:700}.status{font-size:12px;color:var(--t3)}.status.live{color:var(--g)}.status.dead{color:var(--r)}
+#main{display:flex;flex:1;overflow:hidden;gap:1px;background:var(--border)}
+#left{width:280px;background:var(--bg2);display:flex;flex-direction:column}
+#mid{flex:1;background:var(--bg2);display:flex;flex-direction:column}
+#right{width:320px;background:var(--bg2);display:flex;flex-direction:column}
+.ph{display:flex;align-items:center;justify-content:space-between;padding:12px 16px;border-bottom:1px solid var(--border);flex-shrink:0}
+.ph h3{font-size:14px;font-weight:600}.badge{background:var(--r);color:#fff;font-size:11px;font-weight:700;padding:2px 8px;border-radius:10px}
+.scroll{flex:1;overflow-y:auto;padding:8px}.scroll::-webkit-scrollbar{width:4px}.scroll::-webkit-scrollbar-thumb{background:var(--border);border-radius:4px}
+.acard{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:12px;margin-bottom:8px;cursor:pointer}
+.acard:hover{border-color:var(--b)}.acard.s{border-left:3px solid var(--r);background:rgba(239,68,68,.1)}.acard.m{border-left:3px solid var(--o);background:rgba(245,158,11,.1)}.acard.w{border-left:3px solid var(--g);background:rgba(34,197,94,.08)}
+.acard .bn{font-size:15px;font-weight:700;margin-bottom:4px}.acard .st{display:flex;gap:12px;font-size:12px;color:var(--t2)}.acard .sv{font-weight:700;color:var(--t)}.acard .up{color:var(--r)}.acard .ts{font-size:10px;color:var(--t3)}
+.mblock{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:16px;margin-bottom:12px}
+.mblock .bt{font-size:16px;font-weight:700;margin-bottom:4px}.mblock .bm{font-size:12px;color:var(--t3);margin-bottom:8px}
+.ctags{margin-bottom:12px;padding:8px 12px;background:rgba(139,92,246,.08);border-radius:8px;font-size:12px;color:var(--t2);display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.ctag{padding:2px 10px;border-radius:12px;background:rgba(139,92,246,.2);color:var(--p);font-size:11px;font-weight:600}
+.summary{font-size:13px;color:var(--t2);margin-bottom:14px;padding:8px 12px;background:rgba(59,130,246,.08);border-radius:8px;border-left:2px solid var(--b);line-height:1.5}
+.tbl{width:100%;border-collapse:collapse}.tbl th{text-align:left;font-size:11px;color:var(--t3);padding:6px 8px;border-bottom:1px solid var(--border)}.tbl td{padding:8px;font-size:13px;border-bottom:1px solid rgba(255,255,255,.04)}
+.sn{font-weight:600}.sc{font-size:11px;color:var(--t3);margin-left:6px}.ch{font-weight:600;font-size:12px}.ch.up{color:var(--r)}.ch.down{color:var(--g)}
+.stag{font-size:10px;padding:2px 8px;border-radius:10px;background:rgba(6,182,212,.15);color:var(--c);white-space:nowrap}
+.lc{font-size:11px;color:var(--t3);max-width:280px;line-height:1.4}
+.hi{padding:10px 12px;border-bottom:1px solid rgba(255,255,255,.04);border-radius:6px}.hi .ht{font-size:11px;color:var(--t3)}.hi .hb{font-size:14px;font-weight:600}.hi .hc{font-size:13px;font-weight:600;color:var(--r)}
+.emp{display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;text-align:center;padding:20px;color:var(--t3)}.emp .ei{font-size:48px;margin-bottom:12px;opacity:.6}
+#toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);z-index:9999;display:flex;flex-direction:column;gap:8px;align-items:center}
+.toast{padding:12px 24px;border-radius:10px;font-size:14px;font-weight:600;color:#fff;animation:ti .4s ease-out;max-width:500px;text-align:center;box-shadow:0 8px 32px rgba(0,0,0,.4)}
+.toast.strong{background:linear-gradient(135deg,#ef4444,#dc2626)}.toast.mining{background:linear-gradient(135deg,#8b5cf6,#7c3aed)}
+@keyframes ti{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+#bottom{display:flex;align-items:center;justify-content:space-between;padding:6px 20px;background:var(--bg2);border-top:1px solid var(--border);font-size:11px;color:var(--t3);flex-shrink:0}
+@media(max-width:1000px){#main{flex-direction:column}#left,#mid,#right{width:100%;min-width:100%;max-height:33vh}}
+</style>
+</head>
+<body>
+<div id="bar"><div class="logo">🔥 A股异动监控</div><span id="st" class="status">⏳ 加载中...</span><span style="font-size:11px;color:var(--t3);margin-left:auto" id="sc">就绪</span></div>
+<div id="main">
+<div id="left"><div class="ph"><h3>📊 实时异动</h3><span id="ab" class="badge">0</span></div><div id="al" class="scroll"><div class="emp"><div class="ei">👀</div><p>扫描中...</p></div></div></div>
+<div id="mid"><div class="ph"><h3>💎 低位挖掘</h3><span id="mb" class="badge" style="display:none">0</span></div><div id="mr" class="scroll"><div class="emp"><div class="ei">🎯</div><p>异动触发后自动挖掘</p></div></div></div>
+<div id="right"><div class="ph"><h3>📋 记录</h3><span id="hc" class="badge">0</span></div><div id="hl" class="scroll"><div class="emp"><p>暂无</p></div></div></div>
+</div>
+<div id="bottom"><span>数据:东方财富 | 仅供参考</span><span id="si"></span></div>
+<div id="toast"></div>
+<script>
+// 板块代码列表（80个东方财富行业板块）
+const BOARDS=["BK1348","BK1412","BK1599","BK1595","BK0465","BK1420","BK1442","BK1596","BK1594","BK1353","BK1600","BK1341","BK1607","BK1044","BK1042","BK0727","BK1539","BK1501","BK1254","BK1216","BK1027","BK0478","BK0475","BK1026","BK1020","BK1411","BK1018","BK1019","BK1022","BK0474","BK0473","BK1278","BK1028","BK0476","BK0479","BK1424","BK1435","BK1421","BK1397","BK1614","BK1623","BK1625","BK1620","BK1616","BK1624","BK1443","BK1298","BK1036","BK1037","BK1045","BK1048","BK1043","BK0481","BK0477","BK0483","BK0484","BK0486","BK1038","BK0482","BK0487","BK0485","BK1609","BK1350","BK0480","BK0493","BK0466","BK1041","BK0497","BK0500","BK0489","BK1361","BK1598","BK1602","BK1603","BK1604","BK1605","BK1606","BK1608","BK1601"];
+
+// 板块代码→名称映射
+const BNAMES={"BK0465":"化学制药","BK1042":"医药商业","BK1044":"生物制品","BK0727":"医疗服务","BK0466":"中药","BK1041":"医疗器械","BK0473":"证券","BK1027":"小金属","BK0478":"工业金属","BK1020":"非金属材料","BK1018":"化学原料","BK1019":"农化制品","BK1022":"电子化学品","BK0474":"保险","BK1278":"游戏","BK1028":"电池","BK0476":"煤炭","BK0479":"多元金融","BK1424":"氟化工","BK1435":"磷化工","BK1421":"钛白粉","BK1397":"磨具磨料","BK1614":"铅锌","BK1623":"钼","BK1625":"钨","BK1620":"钴","BK1616":"白银","BK1036":"半导体","BK1037":"光伏","BK1045":"电力设备","BK1048":"汽车零部件","BK1043":"军工","BK0481":"食品饮料","BK0477":"白酒","BK0483":"纺织制造","BK0484":"服装家纺","BK0486":"家居用品","BK1038":"美容护理","BK0482":"零售","BK0487":"养殖业","BK0485":"农产品加工","BK1350":"影视院线","BK0480":"石油化工","BK0493":"通用设备","BK1348":"辅料","BK1412":"氨纶","BK1599":"医疗服务","BK1595":"原料药","BK1594":"化学制剂","BK1353":"家纺","BK1600":"医疗研发外包","BK1341":"房产租赁","BK1607":"医药流通","BK1539":"定制家居","BK1501":"动物保健","BK1216":"医药生物","BK1420":"其他化学原料","BK1442":"炭黑","BK1596":"其他生物制品","BK1254":"动物保健","BK1609":"汽车服务","BK0489":"水泥","BK0497":"综合","BK0500":"厨卫电器","BK1361":"期货"};
+
+// 概念→标的映射库
+const CONCEPTS={
+'算力金属':[{c:'000657',n:'中钨高新',r:'钨龙头，半导体刻蚀核心材料'},{c:'002842',n:'翔鹭钨业',r:'钨全产业链，小市值高弹性'},{c:'600301',n:'华锡有色',r:'锡储量前三，7N高纯锡→半导体封装'},{c:'000426',n:'兴业银锡',r:'国内第二大锡矿，锡精矿自给率100%'}],
+'钽电容':[{c:'300726',n:'宏达电子',r:'钽电容营收占比48%，A股占比最高'},{c:'000733',n:'振华科技',r:'特种钽电容市占第一，宇航级量产'},{c:'603678',n:'火炬电子',r:'MLCC+钽电容双主线'}],
+'磷化铟':[{c:'688498',n:'源杰科技',r:'高速光芯片IDM，磷化铟外延+芯片产线'},{c:'002281',n:'光迅科技',r:'光模块+光芯片IDM'}],
+'氧化锆':[{c:'603663',n:'三祥新材',r:'电熔氧化锆市占25%，锆铪分离技术'},{c:'600552',n:'凯盛科技',r:'电熔锆龙头，中国建材旗下'},{c:'300285',n:'国瓷材料',r:'高端陶瓷粉体，MLCC介质材料'}],
+'氟化工':[{c:'603505',n:'金石资源',r:'A股唯一纯萤石龙头'},{c:'603379',n:'三美股份',r:'三代制冷剂重要生产商'}],
+'磷化工':[{c:'002539',n:'云图控股',r:'磷矿储量5.49亿吨'},{c:'002170',n:'芭田股份',r:'复合肥+磷矿双驱动'}],
+'化学制药':[{c:'600196',n:'复星医药',r:'创新药+仿制药龙头'},{c:'002001',n:'新和成',r:'维生素+原料药龙头，高毛利'},{c:'300558',n:'贝达药业',r:'创新药标杆，肺癌靶向药'},{c:'600079',n:'人福医药',r:'麻醉药龙头，高壁垒'}],
+'中药':[{c:'600085',n:'同仁堂',r:'中药金字招牌，品牌壁垒极深'},{c:'000538',n:'云南白药',r:'中药消费龙头'},{c:'600332',n:'白云山',r:'中药+大健康'},{c:'002603',n:'以岭药业',r:'中药创新'}],
+'医疗器械':[{c:'300760',n:'迈瑞医疗',r:'器械龙头，监护仪+超声'},{c:'300529',n:'健帆生物',r:'血液净化龙头，高毛利'}],
+'医药商业':[{c:'603939',n:'益丰药房',r:'连锁药房龙头，处方外流受益'},{c:'002727',n:'一心堂',r:'西南连锁药房龙头'},{c:'603233',n:'大参林',r:'华南连锁药房龙头'}],
+'医疗服务':[{c:'300015',n:'爱尔眼科',r:'眼科连锁龙头'},{c:'300347',n:'泰格医药',r:'CRO龙头'},{c:'603259',n:'药明康德',r:'CXO绝对龙头'}],
+};
+
+function boardConcepts(name){
+  const m={'化学制药':['化学制药'],'化学制剂':['化学制药'],'医药商业':['医药商业'],'医药流通':['医药商业'],'生物制品':['化学制药'],'医疗服务':['医疗服务'],'中药':['中药'],'医疗器械':['医疗器械'],'小金属':['算力金属','钽电容','磷化铟'],'工业金属':['算力金属','钽电容'],'非金属材料':['氧化锆'],'化学原料':['氟化工','磷化工'],'农化制品':['磷化工'],'氟化工':['氟化工'],'磷化工':['磷化工']};
+  for(const[k,v]of Object.entries(m)){if(name.includes(k))return v}
+  return[name];
+}
+
+async function fetchBoard(code){
+  const u='https://push2.eastmoney.com/api/qt/clist/get?fid=f3&po=1&pz=200&pn=1&np=1&fltt=2&invt=2&fs=b:'+code+'&fields=f2,f3,f12,f14';
+  try{const r=await fetch(u,{mode:'cors'});if(!r.ok)return null;const d=await r.json();if(d?.data?.diff)return d.data.diff.map(i=>({c:i.f12,n:i.f14,p:parseFloat(i.f2||0),ch:parseFloat(i.f3||0)}))}catch(e){}
+  return null;
+}
+
+const S={scan:0,alerts:[],mined:[],hist:[],prev:{}};
+
+async function scan(){
+  S.scan++;
+  const el=document.getElementById('sc'),st=document.getElementById('st'),si=document.getElementById('si');
+  el.textContent='第'+S.scan+'轮 · '+new Date().toLocaleTimeString('zh-CN',{hour12:false});
+  st.textContent='⏳ 扫描中...';st.className='status';
+  const results=[];
+  for(let i=0;i<BOARDS.length;i+=8){
+    const batch=BOARDS.slice(i,i+8);
+    const ps=batch.map(async code=>{
+      const cons=await fetchBoard(code);if(!cons||!cons.length)return null;
+      const avg=cons.reduce((s,x)=>s+x.ch,0)/cons.length;
+      const lups=cons.filter(x=>x.ch>=9.5).length;
+      const name=BNAMES[code]||code;
+      return {code,name,change_pct:avg,limit_up:lups,total:cons.length,cons};
+    });
+    const br=await Promise.all(ps);results.push(...br.filter(Boolean));
+    si.textContent=Math.min(i+8,BOARDS.length)+'/'+BOARDS.length;
+  }
+  const valid=results.filter(r=>r.total>=5&&!isNaN(r.change_pct));
+  valid.sort((a,b)=>b.change_pct-a.change_pct);
+  const alerts=[];
+  for(const b of valid.slice(0,20)){
+    let score=0;const reasons=[];
+    const p=b.change_pct,lu=b.limit_up;
+    if(p>=5){score+=40;reasons.push('+'+p.toFixed(1)+'%')}else if(p>=3){score+=30;reasons.push('+'+p.toFixed(1)+'%')}else if(p>=2)score+=15;
+    const prev=S.prev[b.code];if(prev&&p-prev>1.5){score+=40;reasons.push('急拉')}
+    if(lu>=5){score+=50;reasons.push(lu+'只涨停')}else if(lu>=3){score+=30;reasons.push(lu+'只涨停')}
+    S.prev[b.code]=p;
+    let lv='none';if(score>=90)lv='strong';else if(score>=60)lv='medium';else if(score>=35)lv='weak';
+    if(lv!=='none')alerts.push({...b,score,lv,reasons,time:new Date().toLocaleTimeString('zh-CN',{hour12:false})});
+  }
+  S.alerts=alerts.sort((a,b)=>b.score-a.score);renderAlerts();
+  const toMine=alerts.filter(a=>a.lv==='strong'||a.lv==='medium');
+  for(const a of toMine.slice(0,3)){
+    const last=S.mined.find(m=>m.code===a.code);if(last&&Date.now()-last._ts<600000)continue;
+    const concepts=boardConcepts(a.name),stocks=mineLow(a,concepts);
+    S.mined.unshift({...a,concepts,stocks,_ts:Date.now()});if(S.mined.length>20)S.mined.pop();
+    renderMining();if(stocks.length)toast('✅ 挖掘: '+stocks.length+'只低位标的','mining');
+  }
+  for(const a of alerts){S.hist.push({t:a.time,b:a.name,ch:a.change_pct,lv:a.lv});if(S.hist.length>100)S.hist.shift()}
+  renderHist();
+  const trading=isTrading();st.textContent=trading?'● 交易中':'○ 盘后';st.className='status '+(trading?'live':'dead');
+  si.textContent=valid.length+'板块 · '+alerts.length+'异动';
+  const strong=alerts.filter(a=>a.lv==='strong');if(strong.length)toast('🔴 '+strong[0].name+' +'+strong[0].change_pct.toFixed(1)+'%','strong');
+}
+
+function mineLow(board,concepts){
+  const cons=board.cons||[],avg=board.change_pct;
+  const low=cons.filter(c=>c.ch<9.5&&c.ch<avg&&!/ST/.test(c.n)).sort((a,b)=>a.ch-b.ch);
+  const seen=new Set(),results=[];
+  for(const s of low.slice(0,5)){seen.add(s.c);results.push({c:s.c,n:s.n,ch:s.ch,src:'板块内低位',logic:'涨幅'+s.ch.toFixed(1)+'%远低于均值'+avg.toFixed(1)+'%'})}
+  for(const concept of concepts){const stocks=CONCEPTS[concept]||[];for(const s of stocks){if(!seen.has(s.c)&&results.length<8){results.push({c:s.c,n:s.n,ch:0,src:'概念关联('+concept+')',logic:s.r});seen.add(s.c)}}}
+  return results.slice(0,6);
+}
+
+function isTrading(){const n=new Date(),t=n.getHours()*60+n.getMinutes();return n.getDay()>=1&&n.getDay()<=5&&((t>=570&&t<=690)||(t>=780&&t<=900))}
+
+function renderAlerts(){
+  const el=document.getElementById('al');document.getElementById('ab').textContent=S.alerts.length;
+  if(!S.alerts.length){el.innerHTML='<div class="emp"><div class="ei">👀</div><p>暂无显著异动</p></div>';return}
+  el.innerHTML=S.alerts.map(a=>'<div class="acard '+(a.lv==='strong'?'s':a.lv==='medium'?'m':'w')+'"><div class="bn">'+(a.lv==='strong'?'🔴':a.lv==='medium'?'🟡':'🟢')+' '+a.name+'</div><div class="st"><span>涨幅 <span class="sv up">+'+a.change_pct.toFixed(1)+'%</span></span><span>涨停 <span class="sv">'+a.limit_up+'</span>只</span><span>得分 <span class="sv">'+a.score+'</span></span></div><div class="ts">'+a.time+'</div></div>').join('');
+}
+
+function renderMining(){
+  const el=document.getElementById('mr'),bd=document.getElementById('mb');
+  if(!S.mined.length){el.innerHTML='<div class="emp"><div class="ei">🎯</div><p>异动触发后自动挖掘</p></div>';bd.style.display='none';return}
+  bd.style.display='';bd.textContent=S.mined.length;
+  el.innerHTML=S.mined.map(m=>'<div class="mblock"><div class="bt">💎 '+m.name+' <span style="color:var(--r);font-size:14px">+'+m.change_pct.toFixed(1)+'%</span></div><div class="bm">'+m.time+' | '+m.lv+' | '+m.total+'只成分股 | '+m.limit_up+'只涨停</div>'+(m.concepts?.length?'<div class="ctags">🔥 '+m.concepts.map(c=>'<span class="ctag">'+c+'</span>').join(' ')+'</div>':'')+'<div class="summary">📌 「'+m.name+'」板块均涨幅+'+m.change_pct.toFixed(1)+'%，'+m.limit_up+'只涨停。挖掘'+m.stocks.length+'只低位正宗标的。</div>'+(m.stocks?.length?'<table class="tbl"><thead><tr><th>股票</th><th>来源</th><th>逻辑</th></tr></thead><tbody>'+m.stocks.map(s=>'<tr><td><span class="sn">'+s.n+'</span><span class="sc">'+s.c+'</span>'+(s.ch?'<span class="ch '+(s.ch>0?'up':'down')+'">'+(s.ch>0?'+':'')+s.ch+'%</span>':'')+'</td><td><span class="stag">'+(s.src||'概念')+'</span></td><td class="lc">'+(s.logic||'-')+'</td></tr>').join('')+'</tbody></table>':'<p style="color:var(--t3);padding:8px">未找到低位标的</p>')+'</div>').join('');
+}
+
+function renderHist(){
+  const el=document.getElementById('hl');document.getElementById('hc').textContent=S.hist.length;
+  if(!S.hist.length){el.innerHTML='<div class="emp"><p>暂无</p></div>';return}
+  el.innerHTML=S.hist.slice(-30).reverse().map(h=>'<div class="hi"><div class="ht">'+h.t+'</div><div class="hb">'+h.b+'</div><span class="hc">+'+h.ch.toFixed(1)+'%</span></div>').join('');
+}
+
+function toast(msg,type){const e=document.createElement('div');e.className='toast '+type;e.textContent=msg;document.getElementById('toast').appendChild(e);setTimeout(()=>e.remove(),5000)}
+
+document.addEventListener('DOMContentLoaded',()=>{document.getElementById('st').textContent='⏳ 首次扫描...';scan();setInterval(scan,30000)});
+</script>
+</body>
+</html>
