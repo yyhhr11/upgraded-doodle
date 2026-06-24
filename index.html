@@ -597,6 +597,16 @@ async function scan(){
   
   valid.sort((a,b)=>b.change_pct-a.change_pct);
   
+  // === 第4.5步：全局过滤北交所(8/9开头)和ST ===
+  for(const v of valid){
+    v.stocks=v.stocks.filter(s=>!/^[89]/.test(s.c)&&!/ST/.test(s.n));
+    if(v.stocks.length>0){
+      v.total=v.stocks.length;
+      v.change_pct=v.stocks.reduce((a,s)=>a+s.ch,0)/v.stocks.length;
+      v.limit_up=v.stocks.filter(s=>s.ch>=9.5).length;
+    }
+  }
+  
   // === 第5步：去重分组 ===
   const GROUPS={
     '🤖物理AI':['物理AI'],
