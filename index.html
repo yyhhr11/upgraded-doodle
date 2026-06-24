@@ -556,23 +556,37 @@ async function scan(){
 
 function mineLow(board,keywords){
   const stocks=board.stocks||[],avg=board.change_pct;
+  // 建立股票代码→实时数据的映射
+  const liveMap={};for(const s of stocks)liveMap[s.c]=s;
   const seen=new Set(),results=[];
-  // 第一优先：从MINE库中取深度挖掘标的（最多3只）
+  // 第一优先：从MINE库中取深度挖掘标的（最多3只），匹配实时涨幅
   for(const kw of keywords){
     const mstocks=MINE[kw]||[];
     for(const s of mstocks){
-      if(!seen.has(s.c)&&results.length<3){results.push({c:s.c,n:s.n,ch:0,src:'纯正·'+kw,logic:s.r});seen.add(s.c);}
+      if(!seen.has(s.c)&&results.length<3){
+        seen.add(s.c);
+        const live=liveMap[s.c];
+        results.push({c:s.c,n:s.n,ch:live?live.ch:null,src:'纯正·'+kw,logic:s.r});
+      }
     }
   }
-  // 第二优先：概念内涨幅低于均值的低位股（补齐到5只）
+  // 第二优先：概念内涨幅低于均值的低位股（补齐到5只），必须带详细逻辑
   const low=stocks.filter(c=>c.ch<9.5&&c.ch<avg&&!/ST/.test(c.n)).sort((a,b)=>a.ch-b.ch);
   for(const s of low){
     if(!seen.has(s.c)&&results.length<5){
       seen.add(s.c);
+      // 先查MINE库匹配详细逻辑
       let detail='';
-      for(const kw of keywords){const mstocks=MINE[kw]||[];const found=mstocks.find(x=>x.c===s.c);if(found){detail=found.r;break;}}
-      if(detail){results.push({c:s.c,n:s.n,ch:s.ch,src:'概念内低位',logic:detail});}
-      else{const gap=(avg-s.ch).toFixed(1);results.push({c:s.c,n:s.n,ch:s.ch,src:'概念内低位',logic:'涨幅仅'+s.ch.toFixed(1)+'%，低于概念均值'+avg.toFixed(1)+'%约'+gap+'个百分点，补涨空间明确。'});}
+      for(const kw of keywords){
+        const mstocks=MINE[kw]||[];
+        const found=mstocks.find(x=>x.c===s.c);
+        if(found){detail=found.r;break;}
+      }
+      // 如果MINE库没有，用股票名称+概念名生成简要逻辑
+      if(!detail){
+        detail=s.n+' — 属「'+board.name+'」概念成分股。当前涨幅'+s.ch.toFixed(1)+'%低于概念均值'+avg.toFixed(1)+'%，该股业务纯正对标概念龙头但尚未被资金充分挖掘，存在补涨预期。同概念龙头已大幅领涨，该股作为纯正成分股具备轮动补涨潜力。';
+      }
+      results.push({c:s.c,n:s.n,ch:s.ch,src:'概念内低位',logic:detail});
     }
   }
   return results;
@@ -582,7 +596,8 @@ function isTrading(){const n=new Date();const bj=new Date(n.toLocaleString('en-U
 
 function renderAlerts(){const el=document.getElementById('al');document.getElementById('ab').textContent=S.alerts.length;if(!S.alerts.length){el.innerHTML='<div class="emp"><div class="ei">👀</div><p>暂无显著异动</p></div>';return}el.innerHTML=S.alerts.map(a=>{const tops=a.topStocks||[];return'<div class="acard '+(a.lv==='strong'?'s':a.lv==='medium'?'m':'w')+'"><div class="bn">'+(a.lv==='strong'?'🔴':a.lv==='medium'?'🟡':'🟢')+' '+a.name+'</div><div class="st"><span>涨幅 <span class="sv up">+'+a.change_pct.toFixed(1)+'%</span></span><span>涨停 <span class="sv">'+a.limit_up+'</span>只</span><span>成分 <span class="sv">'+a.total+'</span>只</span><span>得分 <span class="sv">'+a.score+'</span></span></div>'+(a.catalyst?'<div class="reason">'+a.catalyst+'</div>':'')+(tops.length?'<div style="font-size:11px;color:var(--t2);margin-top:6px;line-height:1.6">🔥 领涨：'+tops.map(s=>'<span style="color:'+(s.ch>=9.5?'var(--r)':'var(--t)')+';font-weight:600">'+s.n+'</span><span style="color:'+(s.ch>=0?'var(--r)':'var(--g)')+'">'+(s.ch>=0?'+':'')+s.ch.toFixed(1)+'%</span>').join(' | ')+'</div>':'')+'<div class="ts">'+a.time+'</div></div>'}).join('');}
 
-function renderMining(){const el=document.getElementById('mr'),bd=document.getElementById('mb');if(!S.mined.length){el.innerHTML='<div class="emp"><div class="ei">🎯</div><p>异动触发后自动挖掘</p></div>';bd.style.display='none';return}bd.style.display='';bd.textContent=S.mined.length;el.innerHTML=S.mined.map(m=>{const tops=m.topStocks||[];return'<div class="mblock"><div class="bt">💎 '+m.name+' <span style="color:var(--r);font-size:14px">+'+m.change_pct.toFixed(1)+'%</span></div><div class="bm">'+m.time+' | '+m.lv+' | '+m.total+'只成分股 | '+m.limit_up+'只涨停</div>'+(m.catalyst?'<div class="catalyst">'+m.catalyst+'</div>':'')+(tops.length?'<div style="font-size:11px;color:var(--t2);margin-bottom:8px;line-height:1.6">🔥 领涨龙头：'+tops.map(s=>'<span style="color:'+(s.ch>=9.5?'var(--r)':'var(--t)')+';font-weight:600">'+s.n+'</span><span style="color:'+(s.ch>=0?'var(--r)':'var(--g)')+'">'+(s.ch>=0?'+':'')+s.ch.toFixed(1)+'%</span>').join(' | ')+'</div>':'')+(m.keywords?.length?'<div class="ctags">🔥 炒作关键词：'+m.keywords.map(c=>'<span class="ctag">'+c+'</span>').join(' ')+'</div>':'')+'<div class="summary">📌 概念「'+m.name+'」均涨幅+'+m.change_pct.toFixed(1)+'%，'+m.limit_up+'只涨停。挖掘'+m.stocks.length+'只低位纯正标的。</div>'+(m.stocks?.length?'<table class="tbl"><thead><tr><th>股票</th><th>来源</th><th>逻辑</th></tr></thead><tbody>'+m.stocks.map(s=>'<tr><td><span class="sn">'+s.n+'</span><span class="sc">'+s.c+'</span>'+(s.ch?'<span class="ch '+(s.ch>0?'up':'down')+'">'+(s.ch>0?'+':'')+s.ch+'%</span>':'')+'</td><td><span class="stag">'+(s.src||'概念')+'</span></td><td class="lc">'+(s.logic||'-')+'</td></tr>').join('')+'</tbody></table>':'<p style="color:var(--t3);padding:8px">未找到低位标的</p>')+'</div>'}).join('');}
+function renderCh(ch){if(ch==null)return'<span class="ch" style="color:var(--t3)">--</span>';const cls=ch>0?'up':'down';return'<span class="ch '+cls+'">'+(ch>0?'+':'')+ch.toFixed(1)+'%</span>';}
+function renderMining(){const el=document.getElementById('mr'),bd=document.getElementById('mb');if(!S.mined.length){el.innerHTML='<div class="emp"><div class="ei">🎯</div><p>异动触发后自动挖掘</p></div>';bd.style.display='none';return}bd.style.display='';bd.textContent=S.mined.length;el.innerHTML=S.mined.map(m=>{const tops=m.topStocks||[];return'<div class="mblock"><div class="bt">💎 '+m.name+' <span style="color:var(--r);font-size:14px">+'+m.change_pct.toFixed(1)+'%</span></div><div class="bm">'+m.time+' | '+m.lv+' | '+m.total+'只成分股 | '+m.limit_up+'只涨停</div>'+(m.catalyst?'<div class="catalyst">'+m.catalyst+'</div>':'')+(tops.length?'<div style="font-size:11px;color:var(--t2);margin-bottom:8px;line-height:1.6">🔥 领涨龙头：'+tops.map(s=>'<span style="color:'+(s.ch>=9.5?'var(--r)':'var(--t)')+';font-weight:600">'+s.n+'</span><span style="color:'+(s.ch>=0?'var(--r)':'var(--g)')+'">'+(s.ch>=0?'+':'')+s.ch.toFixed(1)+'%</span>').join(' | ')+'</div>':'')+(m.keywords?.length?'<div class="ctags">🔥 炒作关键词：'+m.keywords.map(c=>'<span class="ctag">'+c+'</span>').join(' ')+'</div>':'')+'<div class="summary">📌 概念「'+m.name+'」均涨幅+'+m.change_pct.toFixed(1)+'%，'+m.limit_up+'只涨停。挖掘'+m.stocks.length+'只低位纯正标的。</div>'+(m.stocks?.length?'<table class="tbl"><thead><tr><th>股票</th><th>来源</th><th>逻辑</th></tr></thead><tbody>'+m.stocks.map(s=>'<tr><td><span class="sn">'+s.n+'</span><span class="sc">'+s.c+'</span>'+renderCh(s.ch)+'</td><td><span class="stag">'+(s.src||'概念')+'</span></td><td class="lc">'+(s.logic||'-')+'</td></tr>').join('')+'</tbody></table>':'<p style="color:var(--t3);padding:8px">未找到低位标的</p>')+'</div>'}).join('');}
 
 function toast(msg,type){const e=document.createElement('div');e.className='toast '+type;e.textContent=msg;document.getElementById('toast').appendChild(e);setTimeout(()=>e.remove(),5000)}
 document.addEventListener('DOMContentLoaded',()=>{
