@@ -408,7 +408,7 @@ function getKeywords(name){
 function getCatalyst(name){for(const[k,v]of Object.entries(CATALYSTS)){if(name.includes(k))return v}return'📰 催化：市场资金聚焦+板块轮动+技术面突破';}
 
 // ===== API =====
-async function fetchBoard(code){const u='https://push2.eastmoney.com/api/qt/clist/get?fid=f3&po=1&pz=200&pn=1&np=1&fltt=2&invt=2&fs=b:'+code+'&fields=f2,f3,f12,f14';try{const ctrl=new AbortController();const t=setTimeout(()=>ctrl.abort(),8000);const r=await fetch(u,{mode:'cors',signal:ctrl.signal});clearTimeout(t);if(!r.ok)return null;const d=await r.json();if(d?.data?.diff)return d.data.diff.map(i=>({c:i.f12,n:i.f14,p:parseFloat(i.f2||0),ch:parseFloat(i.f3||0)}))}catch(e){console.warn('fetchBoard '+code+' failed:',e.message)}return null;}
+async function fetchBoard(code){const u='https://push2.eastmoney.com/api/qt/clist/get?fid=f3&po=1&pz=200&pn=1&np=1&fltt=2&invt=2&fs=b:'+code+'&fields=f2,f3,f8,f12,f14';try{const ctrl=new AbortController();const t=setTimeout(()=>ctrl.abort(),8000);const r=await fetch(u,{mode:'cors',signal:ctrl.signal});clearTimeout(t);if(!r.ok)return null;const d=await r.json();if(d?.data?.diff)return d.data.diff.map(i=>({c:i.f12,n:i.f14,p:parseFloat(i.f2||0),ch:parseFloat(i.f3||0),amt:parseFloat(i.f8||0)}))}catch(e){console.warn('fetchBoard '+code+' failed:',e.message)}return null;}
 
 async function fetchStockQuote(codes){
   const secids=codes.map(c=>(c.startsWith('6')?'1.'+c:'0.'+c)).join(',');
@@ -609,19 +609,20 @@ function mineLow(board,keywords){
   // 建立股票代码→实时数据的映射
   const liveMap={};for(const s of stocks)liveMap[s.c]=s;
   const seen=new Set(),results=[];
-  // 第一优先：从MINE库中取深度挖掘标的（最多3只），匹配实时涨幅
+  // 第一优先：从MINE库中取深度挖掘标的（最多3只），匹配实时涨幅，成交额≥10亿
   for(const kw of keywords){
     const mstocks=MINE[kw]||[];
     for(const s of mstocks){
       if(!seen.has(s.c)&&results.length<3){
         seen.add(s.c);
         const live=liveMap[s.c];
+        if(live&&live.amt<1e9)continue; // 成交额不足10亿跳过
         results.push({c:s.c,n:s.n,ch:live?live.ch:null,src:'纯正·'+kw,logic:s.r});
       }
     }
   }
-  // 第二优先：概念内涨幅低于均值的低位股（补齐到5只），必须带详细逻辑
-  const low=stocks.filter(c=>c.ch<9.5&&c.ch<avg&&!/ST/.test(c.n)).sort((a,b)=>a.ch-b.ch);
+  // 第二优先：概念内涨幅低于均值的低位股（补齐到5只），成交额≥10亿
+  const low=stocks.filter(c=>c.ch<9.5&&c.ch<avg&&!/ST/.test(c.n)&&c.amt>=1e9).sort((a,b)=>a.ch-b.ch);
   for(const s of low){
     if(!seen.has(s.c)&&results.length<5){
       seen.add(s.c);
