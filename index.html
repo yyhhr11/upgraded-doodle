@@ -206,63 +206,88 @@ const STOCK_CONCEPT_CORRECT={
 
 // ===== 自主概念推断（基于股票名称/代码，不依赖东方财富分类）=====
 function inferConceptByName(code,name){
-  // 半导体细分
-  if(/光刻|掩模/.test(name))return'光刻机(胶)';
-  if(/封测|封装|长电|通富|华天/.test(name))return'先进封装(Chiplet)';
-  if(/存储|兆易|澜起|江波龙|佰维|北京君正/.test(name))return'存储芯片(HBM)';
-  if(/IGBT|功率|斯达|华润微|士兰|宏微/.test(name))return'IGBT/功率半导体';
-  if(/SiC|GaN|碳化硅|氮化镓|天岳|天科/.test(name))return'第三代半导体(SiC/GaN)';
-  if(/刻蚀|薄膜|CVD|PVD|测试|检测|量测|中微|北方华创|拓荆|芯源微|盛美|精智|中科飞测|华峰/.test(name))return'晶圆设备';
-  if(/EDA|华大九天|概伦|广立微/.test(name))return'EDA概念';
-  // AI/算力
-  if(/AI芯片|寒武纪|海光|景嘉微|龙芯/.test(name))return'AI芯片';
-  if(/光模块|光迅|中际|新易盛|天孚|剑桥|CPO/.test(name))return'CPO概念';
-  if(/液冷|散热|英维克|高澜|申菱|曙光数创/.test(name))return'液冷概念';
-  if(/铜缆|有源铜缆|DAC|AEC|博创|金信诺/.test(name))return'铜缆高速连接';
-  if(/服务器|浪潮|中科曙光|紫光|工业富联|拓维/.test(name))return'算力概念';
-  if(/数据|要素|易华录|太极|中远海科/.test(name))return'数据要素';
-  if(/算力|调度|网宿|奥飞|数据港|光环/.test(name))return'东数西算';
-  // 医药
-  if(/创新药|恒瑞|贝达|百济|君实|荣昌|信达|迪哲|诺诚/.test(name))return'创新药';
-  if(/CRO|CDMO|药明|泰格|康龙|凯莱英|昭衍|美迪西|博腾/.test(name))return'CRO';
-  if(/中药|同仁堂|白药|以岭|片仔癀|华润三九|步长|天士力|康缘|广誉远/.test(name))return'中药';
-  if(/器械|医疗|迈瑞|联影|健帆|欧普|乐普|威高|微创/.test(name))return'医疗器械';
-  if(/制药|人福|科伦|恩华|华东|复星|丽珠|石药|中生/.test(name))return'化学制药';
-  // 新能源
-  if(/锂电|锂|电池|宁德|亿纬|国轩|孚能|天赐|璞泰来|恩捷|当升|新宙邦|德方|容百/.test(name))return'锂电池';
-  if(/固态电池|清陶/.test(name))return'固态电池';
-  if(/光伏|晶科|天合|隆基|通威|晶澳|阳光电源|福斯特|锦浪|固德威|禾迈|昱能/.test(name))return'光伏设备';
-  if(/储能|派能|南都|科士达|科华|盛弘/.test(name))return'储能';
-  if(/氢能|氢|亿华通|美锦|厚普|雪人/.test(name))return'氢能源';
-  if(/特高压|平高|许继|国电南瑞|中国西电|特变|保变/.test(name))return'特高压';
-  if(/充电桩|特锐德|通合|英可瑞/.test(name))return'充电桩';
-  // 有色
-  if(/稀土|北方稀土|金力|中科三环|宁波韵升|正海|英洛华/.test(name))return'稀土永磁';
-  if(/黄金|紫金|中金|山东黄金|赤峰|银泰|湖南黄金/.test(name))return'黄金概念';
-  if(/锂矿|天齐|赣锋|盐湖|雅化|盛新|融捷|川能/.test(name))return'锂矿概念';
-  if(/钨|钼|钽|中钨|翔鹭|厦门钨业|洛阳钼业|华锡|兴业银锡/.test(name))return'小金属';
-  if(/铜|铝|锌|云铝|神火|天山铝业|江西铜业|铜陵/.test(name))return'工业金属';
-  // 化工
-  if(/磷化工|磷|云天化|兴发|川恒|新洋丰/.test(name))return'磷化工';
-  if(/氟化工|氟|巨化|多氟多|永太|天赐/.test(name))return'氟化工';
-  if(/钛白粉|钛|龙佰|中核钛白|金浦/.test(name))return'钛白粉';
-  // 消费
-  if(/酒|茅台|五粮液|泸州|汾酒|洋河|古井|舍得|酒鬼|老窖/.test(name))return'白酒';
-  if(/食品|伊利|海天|金龙鱼|双汇|安井|洽洽|绝味|良品/.test(name))return'食品饮料';
+  // === 半导体（按产业链精确细分）===
+  // 设备/检测
+  if(/刻蚀|薄膜沉积|CVD|PVD|ALD|量测|检测设备|测试设备|探针台|分选机|划片|键合|固晶|中微公司|北方华创|拓荆科技|芯源微|盛美上海|中科飞测|精智达|华峰测控|长川科技|金海通|联动科技/.test(name))return'晶圆设备';
+  // 光刻
+  if(/光刻|掩模|光刻胶|容大|南大光电|晶瑞|上海新阳|彤程|飞凯/.test(name))return'光刻机(胶)';
+  // 封测
+  if(/封测|封装|长电科技|通富微电|华天科技|晶方科技|气派科技/.test(name))return'先进封装(Chiplet)';
+  // 存储
+  if(/存储芯片|NAND|DRAM|HBM|兆易创新|澜起科技|江波龙|佰维存储|北京君正|普冉|恒烁/.test(name))return'存储芯片(HBM)';
+  // 功率
+  if(/IGBT|功率器件|功率半导体|斯达半导|华润微|士兰微|宏微科技|时代电气|新洁能|东微半导/.test(name))return'IGBT/功率半导体';
+  // 第三代
+  if(/SiC|GaN|碳化硅|氮化镓|天岳先进|天科合达|三安光电|露笑科技/.test(name))return'第三代半导体(SiC/GaN)';
+  // EDA/IP
+  if(/EDA|华大九天|概伦电子|广立微|芯原股份|国芯科技/.test(name))return'EDA概念';
+  // AI芯片
+  if(/AI芯片|GPU|NPU|寒武纪|海光信息|景嘉微|龙芯中科/.test(name))return'AI芯片';
+  
+  // === AI/算力（按应用场景精确细分）===
+  // 光通信
+  if(/光模块|光器件|光芯片|CPO|光迅科技|中际旭创|新易盛|天孚通信|剑桥科技|源杰科技|联特科技|德科立/.test(name))return'CPO概念';
+  // 液冷散热
+  if(/液冷|散热|冷却|英维克|高澜股份|申菱环境|曙光数创|同飞股份|佳力图/.test(name))return'液冷概念';
+  // 铜缆互联
+  if(/铜缆|有源铜缆|DAC|AEC|高速线缆|博创科技|金信诺|兆龙互连/.test(name))return'铜缆高速连接';
+  // AI服务器/算力租赁
+  if(/AI服务器|算力服务器|浪潮信息|中科曙光|紫光股份|工业富联|拓维信息|神州数码/.test(name))return'算力概念';
+  // 数据中心/算力调度（东数西算）
+  if(/数据中心|算力调度|算力网络|数据港|奥飞数据|光环新网|网宿科技|首都在线|铜牛信息/.test(name))return'东数西算';
+  // 数据要素
+  if(/数据要素|数据确权|易华录|太极股份|中远海科|深桑达|人民网|浙数文化/.test(name))return'数据要素';
+  
+  // === 医药 ===
+  if(/创新药|生物药|ADC|双抗|CAR-T|恒瑞医药|贝达药业|百济神州|君实生物|荣昌生物|信达|迪哲医药|诺诚健华|微芯生物|艾力斯/.test(name))return'创新药';
+  if(/CRO|CDMO|药明康德|泰格医药|康龙化成|凯莱英|昭衍新药|美迪西|博腾股份|药石科技/.test(name))return'CRO';
+  if(/中药|同仁堂|云南白药|以岭药业|片仔癀|华润三九|步长制药|天士力|康缘药业|广誉远|白云山/.test(name))return'中药';
+  if(/医疗器械|医疗设备|迈瑞医疗|联影医疗|健帆生物|欧普康视|乐普医疗|威高骨科|微创医疗|鱼跃医疗/.test(name))return'医疗器械';
+  if(/制药|人福医药|科伦药业|恩华药业|华东医药|复星医药|丽珠集团|石药集团/.test(name))return'化学制药';
+  
+  // === 新能源 ===
+  if(/锂电池|锂电|宁德时代|亿纬锂能|国轩高科|孚能科技|天赐材料|璞泰来|恩捷股份|当升科技|新宙邦|德方纳米|容百科技/.test(name))return'锂电池';
+  if(/固态电池|清陶|卫蓝/.test(name))return'固态电池';
+  if(/光伏|晶科能源|天合光能|隆基绿能|通威股份|晶澳科技|阳光电源|福斯特|锦浪科技|固德威|禾迈|昱能/.test(name))return'光伏设备';
+  if(/储能|派能科技|南都电源|科士达|科华数据|盛弘股份/.test(name))return'储能';
+  if(/氢能|氢燃料|亿华通|美锦能源|厚普股份|雪人股份/.test(name))return'氢能源';
+  if(/特高压|平高电气|许继电气|国电南瑞|中国西电|特变电工|保变电气/.test(name))return'特高压';
+  if(/充电桩|特锐德|通合科技|英可瑞/.test(name))return'充电桩';
+  
+  // === 有色（按品种精确细分）===
+  if(/稀土|北方稀土|金力永磁|中科三环|宁波韵升|正海磁材|英洛华/.test(name))return'稀土永磁';
+  if(/黄金|紫金矿业|中金黄金|山东黄金|赤峰黄金|银泰黄金|湖南黄金/.test(name))return'黄金概念';
+  if(/锂矿|锂业|天齐锂业|赣锋锂业|盐湖股份|雅化集团|盛新锂能|融捷股份|川能动力/.test(name))return'锂矿概念';
+  if(/钨|钼|钽|铟|锗|中钨高新|翔鹭钨业|厦门钨业|洛阳钼业|华锡有色|兴业银锡/.test(name))return'小金属';
+  if(/铜业|铝业|锌业|云铝股份|神火股份|天山铝业|江西铜业|铜陵有色/.test(name))return'工业金属';
+  
+  // === 化工 ===
+  if(/磷化工|磷肥|云天化|兴发集团|川恒股份|新洋丰/.test(name))return'磷化工';
+  if(/氟化工|氟材料|巨化股份|多氟多|永太科技/.test(name))return'氟化工';
+  if(/钛白粉|钛业|龙佰集团|中核钛白|金浦钛业/.test(name))return'钛白粉';
+  
+  // === 消费 ===
+  if(/白酒|茅台|五粮液|泸州老窖|汾酒|洋河|古井贡|舍得|酒鬼|老窖/.test(name))return'白酒';
+  if(/食品|乳业|伊利|海天|金龙鱼|双汇|安井|洽洽|绝味|良品/.test(name))return'食品饮料';
   if(/猪|牧原|温氏|新希望|正邦|天邦|傲农/.test(name))return'猪肉概念';
   if(/家电|美的|格力|海尔|老板|苏泊尔|九阳|小熊/.test(name))return'家电行业';
-  // 金融
-  if(/券商|中信|华泰|国泰|海通|广发|招商|申万|银河|东方/.test(name))return'券商概念';
-  if(/保险|平安|太保|人保|国寿|新华/.test(name))return'保险';
-  // 周期
-  if(/煤|神华|陕煤|兖矿|中煤|潞安|山西焦煤/.test(name))return'煤炭行业';
+  
+  // === 金融 ===
+  if(/券商|中信证券|华泰证券|国泰君安|海通证券|广发证券|招商证券|申万|银河/.test(name))return'券商概念';
+  if(/保险|中国平安|太保|人保|国寿|新华/.test(name))return'保险';
+  
+  // === 周期 ===
+  if(/煤炭|神华|陕煤|兖矿|中煤|潞安|山西焦煤/.test(name))return'煤炭行业';
   if(/石油|石化|中海油|中石油|中石化|恒力|荣盛|桐昆/.test(name))return'石油行业';
-  // 军工
-  if(/军工|航天|中航|航发|中国卫星|天银|中兵|兵器/.test(name))return'军工';
-  // 机器人
-  if(/机器人|减速器|绿的谐波|三花|拓普|鸣志|凌云|埃斯顿|新松|拓斯达|新时达/.test(name))return'人形机器人';
-  // 低空
-  if(/低空|eVTOL|飞行|万丰|中直|莱斯|英搏尔|宗申|纵横|中信海直|彩虹/.test(name))return'低空经济';
+  
+  // === 军工 ===
+  if(/军工|航天|中航|航发|中国卫星|天银机电|中兵|兵器|中船/.test(name))return'军工';
+  
+  // === 机器人 ===
+  if(/机器人|减速器|绿的谐波|三花智控|拓普集团|鸣志电器|凌云光|埃斯顿|新松|拓斯达|新时达/.test(name))return'人形机器人';
+  
+  // === 低空经济 ===
+  if(/低空|eVTOL|飞行汽车|万丰奥威|中直股份|莱斯信息|英搏尔|宗申动力|纵横股份|中信海直|航天彩虹/.test(name))return'低空经济';
   
   return null; // 无法推断，交给兜底
 }
@@ -520,10 +545,14 @@ async function scan(){
       if(s.ch<3||seen.has(s.c)||/^[89]/.test(s.c))continue; // 只取涨幅>3%的个股，去重，排除北交所(8/9开头)
       seen.add(s.c);
       
-      // 自主推断概念：修正库 > 名称推断 > 板块名（仅当板块名本身是精确概念时）
+      // 自主推断概念：修正库 > 名称推断 > 用板块名（仅当板块名非通用类时）
       let realConcept=STOCK_CONCEPT_CORRECT[s.c];
       if(!realConcept)realConcept=inferConceptByName(s.c,s.n);
-      if(!realConcept)realConcept=br.name; // 最后兜底
+      // 兜底：只有当东方财富板块名是精确概念(非通用大类)时才使用
+      if(!realConcept){
+        const genericBoards=['沪市主板','深市主板','创业板','科创板','其他'];
+        if(!genericBoards.includes(br.name))realConcept=br.name;
+      }
       
       if(!conceptMap[realConcept])conceptMap[realConcept]={stocks:[],change_sum:0,limit_up:0,code:realConcept,name:realConcept};
       conceptMap[realConcept].stocks.push(s);
