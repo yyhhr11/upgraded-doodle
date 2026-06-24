@@ -403,7 +403,7 @@ function getKeywords(name){
 function getCatalyst(name){for(const[k,v]of Object.entries(CATALYSTS)){if(name.includes(k))return v}return'📰 催化：市场资金聚焦+板块轮动+技术面突破';}
 
 // ===== API =====
-async function fetchBoard(code){const u='https://push2.eastmoney.com/api/qt/clist/get?fid=f3&po=1&pz=200&pn=1&np=1&fltt=2&invt=2&fs=b:'+code+'&fields=f2,f3,f12,f14';try{const r=await fetch(u,{mode:'cors'});if(!r.ok)return null;const d=await r.json();if(d?.data?.diff)return d.data.diff.map(i=>({c:i.f12,n:i.f14,p:parseFloat(i.f2||0),ch:parseFloat(i.f3||0)}))}catch(e){}return null;}
+async function fetchBoard(code){const u='https://push2.eastmoney.com/api/qt/clist/get?fid=f3&po=1&pz=200&pn=1&np=1&fltt=2&invt=2&fs=b:'+code+'&fields=f2,f3,f12,f14';try{const ctrl=new AbortController();const t=setTimeout(()=>ctrl.abort(),8000);const r=await fetch(u,{mode:'cors',signal:ctrl.signal});clearTimeout(t);if(!r.ok)return null;const d=await r.json();if(d?.data?.diff)return d.data.diff.map(i=>({c:i.f12,n:i.f14,p:parseFloat(i.f2||0),ch:parseFloat(i.f3||0)}))}catch(e){console.warn('fetchBoard '+code+' failed:',e.message)}return null;}
 
 async function fetchStockQuote(codes){
   const secids=codes.map(c=>(c.startsWith('6')?'1.'+c:'0.'+c)).join(',');
@@ -431,7 +431,8 @@ async function scan(){
       const name=NAMES[code]||code;
       return{code,name,cons};
     });
-    const br=await Promise.all(ps);boardResults.push(...br.filter(Boolean));
+    const br=await Promise.allSettled(ps);
+    for(const r of br){if(r.status==='fulfilled'&&r.value)boardResults.push(r.value);}
     si.textContent=Math.min(i+8,BOARDS.length)+'/'+BOARDS.length+'板块';
   }
   
@@ -591,8 +592,10 @@ function renderMining(){const el=document.getElementById('mr'),bd=document.getEl
 function toast(msg,type){const e=document.createElement('div');e.className='toast '+type;e.textContent=msg;document.getElementById('toast').appendChild(e);setTimeout(()=>e.remove(),5000)}
 document.addEventListener('DOMContentLoaded',()=>{
   const st=document.getElementById('st');
-  function doScan(){
-    if(isTrading()){scan();}
+  async function doScan(){
+    if(isTrading()){
+      try{await scan();}catch(e){console.error('scan error:',e);st.textContent='⚠ 扫描出错，30秒后重试';st.className='status dead';}
+    }
     else{
       st.textContent='○ 盘后（保留最后扫描结果）';st.className='status dead';
       document.getElementById('si').textContent='等待开盘 · 交易日9:00-11:30,13:00-15:00';
