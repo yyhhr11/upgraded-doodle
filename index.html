@@ -847,11 +847,13 @@ function renderMining(){const el=document.getElementById('mr'),bd=document.getEl
 function toast(msg,type){const e=document.createElement('div');e.className='toast '+type;e.textContent=msg;document.getElementById('toast').appendChild(e);setTimeout(()=>e.remove(),5000)}
 document.addEventListener('DOMContentLoaded',()=>{
   const st=document.getElementById('st');
+  let isFirstScan=true;
   async function doScan(){
-    if(isTrading()){
-      try{await scan();}catch(e){console.error('scan error:',e);st.textContent='⚠ 扫描出错，30秒后重试';st.className='status dead';}
+    if(isTrading()||isFirstScan){
+      // 交易时段正常扫描，或者盘后首次加载也扫描一次获取数据
+      try{await scan();isFirstScan=false;}catch(e){console.error('scan error:',e);st.textContent='⚠ 扫描出错，30秒后重试';st.className='status dead';}
     }
-    else{
+    if(!isTrading()){
       st.textContent='○ 盘后（保留最后扫描结果）';st.className='status dead';
       document.getElementById('si').textContent='等待开盘 · 交易日9:00-11:30,13:00-15:00';
     }
