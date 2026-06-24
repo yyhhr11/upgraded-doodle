@@ -444,7 +444,32 @@ async function scan(){
   const strong=alerts.filter(a=>a.lv==='strong');if(strong.length)toast('🔴 '+strong[0].name+' +'+strong[0].change_pct.toFixed(1)+'%','strong');
 }
 
-function mineLow(board,keywords){const cons=board.cons||[],avg=board.change_pct;const low=cons.filter(c=>c.ch<9.5&&c.ch<avg&&!/ST/.test(c.n)).sort((a,b)=>a.ch-b.ch);const seen=new Set(),results=[];for(const s of low.slice(0,5)){seen.add(s.c);const gap=(avg-s.ch).toFixed(1);results.push({c:s.c,n:s.n,ch:s.ch,src:'概念内低位',logic:'涨幅仅'+s.ch.toFixed(1)+'%，低于概念均值'+avg.toFixed(1)+'%约'+gap+'个百分点。同概念涨停龙头已大涨，该股业务纯正对标但尚未被资金挖掘，补涨空间明确。'});}for(const kw of keywords){const stocks=MINE[kw]||[];for(const s of stocks){if(!seen.has(s.c)&&results.length<8){results.push({c:s.c,n:s.n,ch:0,src:'纯正·'+kw,logic:s.r});seen.add(s.c);}}}return results.slice(0,6);}
+function mineLow(board,keywords){const cons=board.cons||[],avg=board.change_pct;const seen=new Set(),results=[];
+  // 第一优先：从MINE库中取深度挖掘标的（有详细业务逻辑的）
+  for(const kw of keywords){
+    const stocks=MINE[kw]||[];
+    for(const s of stocks){
+      if(!seen.has(s.c)&&results.length<8){results.push({c:s.c,n:s.n,ch:0,src:'纯正·'+kw,logic:s.r});seen.add(s.c);}
+    }
+  }
+  // 第二优先：从概念成分股中找涨幅低于均值的低位股（附带简要逻辑）
+  const low=cons.filter(c=>c.ch<9.5&&c.ch<avg&&!/ST/.test(c.n)).sort((a,b)=>a.ch-b.ch);
+  for(const s of low){
+    if(!seen.has(s.c)&&results.length<8){
+      seen.add(s.c);
+      // 尝试从MINE库中匹配该股票的详细逻辑
+      let detail='';
+      for(const kw of keywords){const stocks=MINE[kw]||[];const found=stocks.find(x=>x.c===s.c);if(found){detail=found.r;break;}}
+      if(detail){
+        results.push({c:s.c,n:s.n,ch:s.ch,src:'概念内低位',logic:detail});
+      }else{
+        const gap=(avg-s.ch).toFixed(1);
+        results.push({c:s.c,n:s.n,ch:s.ch,src:'概念内低位',logic:'涨幅仅'+s.ch.toFixed(1)+'%，低于概念均值'+avg.toFixed(1)+'%约'+gap+'个百分点，补涨空间明确。'});
+      }
+    }
+  }
+  return results.slice(0,8);
+}
 
 function isTrading(){const n=new Date();const bj=new Date(n.toLocaleString('en-US',{timeZone:'Asia/Shanghai'}));const t=bj.getHours()*60+bj.getMinutes();return bj.getDay()>=1&&bj.getDay()<=5&&((t>=570&&t<=690)||(t>=780&&t<=900))}
 
