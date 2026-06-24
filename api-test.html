@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html><head><meta charset="UTF-8"><title>API Test</title></head>
+<body>
+<h1>API Test</h1>
+<div id="result">Testing...</div>
+<script>
+(async()=>{
+  const u='https://push2.eastmoney.com/api/qt/clist/get?fid=f3&po=1&pz=5&pn=1&np=1&fltt=2&invt=2&fs=b:BK1106&fields=f2,f3,f12,f14';
+  try{
+    const r=await fetch(u,{mode:'cors'});
+    document.getElementById('result').textContent='Status: '+r.status;
+    if(r.ok){
+      const d=await r.json();
+      const stocks=d?.data?.diff||[];
+      document.getElementById('result').innerHTML='✅ API OK! Got '+stocks.length+' stocks:<br>'+stocks.map(s=>s.f14+' '+s.f3+'%').join('<br>');
+    }else{
+      document.getElementById('result').textContent='❌ HTTP '+r.status;
+    }
+  }catch(e){
+    document.getElementById('result').textContent='❌ Error: '+e.message;
+  }
+})();
+</script>
+</body></html>
