@@ -517,7 +517,7 @@ async function scan(){
   
   for(const br of boardResults){
     for(const s of br.cons){
-      if(s.ch<3||seen.has(s.c)||/^8/.test(s.c))continue; // 只取涨幅>3%的个股，去重，排除北交所(8开头)
+      if(s.ch<3||seen.has(s.c)||/^[89]/.test(s.c))continue; // 只取涨幅>3%的个股，去重，排除北交所(8/9开头)
       seen.add(s.c);
       
       // 自主推断概念：修正库 > 名称推断 > 板块名（仅当板块名本身是精确概念时）
@@ -696,7 +696,7 @@ function mineLow(board,keywords){
     }
   }
   // 第二优先：概念内涨幅低于均值的低位股（补齐到5只），成交额≥10亿
-  const low=stocks.filter(c=>c.ch<9.5&&c.ch<avg&&!/ST/.test(c.n)&&!/^8/.test(c.c)&&c.amt>=1e9).sort((a,b)=>a.ch-b.ch);
+  const low=stocks.filter(c=>c.ch<9.5&&c.ch<avg&&!/ST/.test(c.n)&&!/^[89]/.test(c.c)&&c.amt>=1e9).sort((a,b)=>a.ch-b.ch);
   for(const s of low){
     if(!seen.has(s.c)&&results.length<5){
       seen.add(s.c);
