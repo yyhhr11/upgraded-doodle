@@ -204,6 +204,69 @@ const STOCK_CONCEPT_CORRECT={
   "688599":"光伏设备","688223":"光伏设备",
 };
 
+// ===== 自主概念推断（基于股票名称/代码，不依赖东方财富分类）=====
+function inferConceptByName(code,name){
+  // 半导体细分
+  if(/光刻|掩模/.test(name))return'光刻机(胶)';
+  if(/封测|封装|长电|通富|华天/.test(name))return'先进封装(Chiplet)';
+  if(/存储|兆易|澜起|江波龙|佰维|北京君正/.test(name))return'存储芯片(HBM)';
+  if(/IGBT|功率|斯达|华润微|士兰|宏微/.test(name))return'IGBT/功率半导体';
+  if(/SiC|GaN|碳化硅|氮化镓|天岳|天科/.test(name))return'第三代半导体(SiC/GaN)';
+  if(/刻蚀|薄膜|CVD|PVD|中微|北方华创|拓荆|芯源微|盛美/.test(name))return'晶圆设备';
+  if(/EDA|华大九天|概伦|广立微/.test(name))return'EDA概念';
+  // AI/算力
+  if(/AI芯片|寒武纪|海光|景嘉微|龙芯/.test(name))return'AI芯片';
+  if(/光模块|光迅|中际|新易盛|天孚|剑桥|CPO/.test(name))return'CPO概念';
+  if(/液冷|散热|英维克|高澜|申菱|曙光数创/.test(name))return'液冷概念';
+  if(/铜缆|有源铜缆|DAC|AEC|博创|金信诺/.test(name))return'铜缆高速连接';
+  if(/服务器|浪潮|中科曙光|紫光|工业富联|拓维/.test(name))return'算力概念';
+  if(/数据|要素|易华录|太极|中远海科/.test(name))return'数据要素';
+  if(/算力|调度|网宿|奥飞|数据港|光环/.test(name))return'东数西算';
+  // 医药
+  if(/创新药|恒瑞|贝达|百济|君实|荣昌|信达|迪哲|诺诚/.test(name))return'创新药';
+  if(/CRO|CDMO|药明|泰格|康龙|凯莱英|昭衍|美迪西|博腾/.test(name))return'CRO';
+  if(/中药|同仁堂|白药|以岭|片仔癀|华润三九|步长|天士力|康缘|广誉远/.test(name))return'中药';
+  if(/器械|医疗|迈瑞|联影|健帆|欧普|乐普|威高|微创/.test(name))return'医疗器械';
+  if(/制药|人福|科伦|恩华|华东|复星|丽珠|石药|中生/.test(name))return'化学制药';
+  // 新能源
+  if(/锂电|锂|电池|宁德|亿纬|国轩|孚能|天赐|璞泰来|恩捷|当升|新宙邦|德方|容百/.test(name))return'锂电池';
+  if(/固态电池|清陶/.test(name))return'固态电池';
+  if(/光伏|晶科|天合|隆基|通威|晶澳|阳光电源|福斯特|锦浪|固德威|禾迈|昱能/.test(name))return'光伏设备';
+  if(/储能|派能|南都|科士达|科华|盛弘/.test(name))return'储能';
+  if(/氢能|氢|亿华通|美锦|厚普|雪人/.test(name))return'氢能源';
+  if(/特高压|平高|许继|国电南瑞|中国西电|特变|保变/.test(name))return'特高压';
+  if(/充电桩|特锐德|通合|英可瑞/.test(name))return'充电桩';
+  // 有色
+  if(/稀土|北方稀土|金力|中科三环|宁波韵升|正海|英洛华/.test(name))return'稀土永磁';
+  if(/黄金|紫金|中金|山东黄金|赤峰|银泰|湖南黄金/.test(name))return'黄金概念';
+  if(/锂矿|天齐|赣锋|盐湖|雅化|盛新|融捷|川能/.test(name))return'锂矿概念';
+  if(/钨|钼|钽|中钨|翔鹭|厦门钨业|洛阳钼业|华锡|兴业银锡/.test(name))return'小金属';
+  if(/铜|铝|锌|云铝|神火|天山铝业|江西铜业|铜陵/.test(name))return'工业金属';
+  // 化工
+  if(/磷化工|磷|云天化|兴发|川恒|新洋丰/.test(name))return'磷化工';
+  if(/氟化工|氟|巨化|多氟多|永太|天赐/.test(name))return'氟化工';
+  if(/钛白粉|钛|龙佰|中核钛白|金浦/.test(name))return'钛白粉';
+  // 消费
+  if(/酒|茅台|五粮液|泸州|汾酒|洋河|古井|舍得|酒鬼|老窖/.test(name))return'白酒';
+  if(/食品|伊利|海天|金龙鱼|双汇|安井|洽洽|绝味|良品/.test(name))return'食品饮料';
+  if(/猪|牧原|温氏|新希望|正邦|天邦|傲农/.test(name))return'猪肉概念';
+  if(/家电|美的|格力|海尔|老板|苏泊尔|九阳|小熊/.test(name))return'家电行业';
+  // 金融
+  if(/券商|中信|华泰|国泰|海通|广发|招商|申万|银河|东方/.test(name))return'券商概念';
+  if(/保险|平安|太保|人保|国寿|新华/.test(name))return'保险';
+  // 周期
+  if(/煤|神华|陕煤|兖矿|中煤|潞安|山西焦煤/.test(name))return'煤炭行业';
+  if(/石油|石化|中海油|中石油|中石化|恒力|荣盛|桐昆/.test(name))return'石油行业';
+  // 军工
+  if(/军工|航天|中航|航发|中国卫星|天银|中兵|兵器/.test(name))return'军工';
+  // 机器人
+  if(/机器人|减速器|绿的谐波|三花|拓普|鸣志|凌云|埃斯顿|新松|拓斯达|新时达/.test(name))return'人形机器人';
+  // 低空
+  if(/低空|eVTOL|飞行|万丰|中直|莱斯|英搏尔|宗申|纵横|中信海直|彩虹/.test(name))return'低空经济';
+  
+  return null; // 无法推断，交给兜底
+}
+
 // ===== 新概念（东方财富没有覆盖的概念）=====
 const NEW_CONCEPTS={
   "物理AI":{stocks:["688507","301313","688322","601138","300496"],catalyst:"📰 英伟达GTC发布全球首款开放物理AI模型+CES Asia 2026核心主题+索辰世界物理模型'营造·万象'发布+海光信息战略合作'算法+算力'协同"},
@@ -448,7 +511,7 @@ async function scan(){
     si.textContent=Math.min(i+8,BOARDS.length)+'/'+BOARDS.length+'板块';
   }
   
-  // === 第2步：从每个板块中只取大涨个股(涨幅>3%)，用修正库重新归属概念 ===
+  // === 第2步：从每个板块中只取大涨个股(涨幅>3%)，自主推断真实概念 ===
   const conceptMap={}; // {conceptName: {stocks:[], change_sum:0, limit_up:0}}
   const seen=new Set(); // 同一只股票不重复计入
   
@@ -457,8 +520,10 @@ async function scan(){
       if(s.ch<3||seen.has(s.c))continue; // 只取涨幅>3%的个股，去重
       seen.add(s.c);
       
-      // 用修正库获取真实概念，没有则用板块名
-      const realConcept=STOCK_CONCEPT_CORRECT[s.c]||br.name;
+      // 自主推断概念：修正库 > 名称推断 > 板块名（仅当板块名本身是精确概念时）
+      let realConcept=STOCK_CONCEPT_CORRECT[s.c];
+      if(!realConcept)realConcept=inferConceptByName(s.c,s.n);
+      if(!realConcept)realConcept=br.name; // 最后兜底
       
       if(!conceptMap[realConcept])conceptMap[realConcept]={stocks:[],change_sum:0,limit_up:0,code:realConcept,name:realConcept};
       conceptMap[realConcept].stocks.push(s);
