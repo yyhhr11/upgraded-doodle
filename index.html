@@ -159,7 +159,12 @@ const CATALYSTS={
 "商业航天":"📰 政府工作报告首提'加快发展卫星互联网'+星网GW/千帆/G60三大星座密集组网",
 "智能驾驶":"📰 L3级自动驾驶从概念走向商业落地+特斯拉FSD入华预期升温+域控制器成车企必争之地",
 "脑机接口":"📰 2026年脑机接口首入政府工作报告+博睿康NEO获全球首个植入式脑机接口注册证",
-"可控核聚变":"📰 BEST装置加速推进+中国聚变能源公司注册资本增至150亿元+全球核聚变融资达97亿美元"
+"可控核聚变":"📰 BEST装置加速推进+中国聚变能源公司注册资本增至150亿元+全球核聚变融资达97亿美元",
+// 细分炒作关键词（可作为独立概念）
+"算力金属":"📰 AI算力需求爆发拉动锡/钨/钽/铟需求结构性增长+锡价/钨价创历史新高+全球供给收紧",
+"钽电容":"📰 AI服务器钽电容用量是传统3-5倍+军工宇航级认证壁垒极高+MLCC替代钽电容趋势反转",
+"磷化铟":"📰 CPO光模块核心光芯片材料(InP)+高速EML芯片需求暴增+磷化铟衬底国产突破",
+"氧化锆":"📰 AI散热材料需求爆发+半导体CMP抛光液国产替代+锆铪分离技术突破"
 };
 
 // ===== 个股概念修正库（覆盖东财分类错误）=====
@@ -454,6 +459,46 @@ async function scan(){
   }
   si.textContent=seen.size+'只大涨股';
   
+  // === 第2.5步：细分概念拆分——如果某个炒作关键词下大涨股≥2只，拆分为独立概念 ===
+  // 建立关键词→股票列表的映射
+  const keywordMap={};
+  for(const[cn,cd]of Object.entries(conceptMap)){
+    for(const s of cd.stocks){
+      const keywords=getKeywords(cn);
+      for(const kw of keywords){
+        if(kw===cn||kw==='算力金属'||kw==='钽电容'||kw==='磷化铟'||kw==='氧化锆'||kw==='CPO')continue; // 跳过工具性关键词和同名的
+        if(!keywordMap[kw])keywordMap[kw]={stocks:[],change_sum:0,limit_up:0};
+        keywordMap[kw].stocks.push(s);
+        keywordMap[kw].change_sum+=s.ch;
+        if(s.ch>=9.5)keywordMap[kw].limit_up++;
+      }
+    }
+  }
+  // 如果某个关键词下≥2只大涨股，从原概念中拆分出来
+  const splitKeywords=new Set();
+  for(const[kw,kd]of Object.entries(keywordMap)){
+    if(kd.stocks.length>=2){
+      splitKeywords.add(kw);
+      // 检查是否已有同名概念
+      if(!conceptMap[kw]){
+        kd.name=kw;kd.code=kw;
+        conceptMap[kw]=kd;
+      }
+    }
+  }
+  // 从原概念中移除已拆分的股票（避免重复）
+  for(const kw of splitKeywords){
+    const splitStocks=conceptMap[kw]?.stocks||[];
+    for(const[cn,cd]of Object.entries(conceptMap)){
+      if(cn===kw)continue;
+      cd.stocks=cd.stocks.filter(s=>!splitStocks.some(ss=>ss.c===s.c));
+      if(cd.stocks.length>0){
+        cd.change_sum=cd.stocks.reduce((a,s)=>a+s.ch,0);
+        cd.limit_up=cd.stocks.filter(s=>s.ch>=9.5).length;
+      }
+    }
+  }
+  
   // === 第3步：聚合概念，计算均涨幅 ===
   const valid=[];
   for(const[cn,cd]of Object.entries(conceptMap)){
@@ -505,7 +550,12 @@ async function scan(){
     '💰金融':['券商','保险','多元金融','中字头'],
     '⛽周期':['煤炭','石油','影视']
   };
-  function boardGroup(name){for(const[g,ks]of Object.entries(GROUPS)){for(const k of ks){if(name.includes(k))return g}}return'📌其他';}
+  function boardGroup(name){
+    // 细分概念不作为大概念去重，直接按原名返回
+    const subConcepts=['算力金属','钽电容','磷化铟','氧化锆','CPO','氟化工','磷化工','机器人','飞行汽车','工业母机'];
+    if(subConcepts.includes(name))return name;
+    for(const[g,ks]of Object.entries(GROUPS)){for(const k of ks){if(name.includes(k))return g}}return'📌其他';
+  }
   const deduped=[];const seenG=new Set();
   for(const b of valid){
     const g=boardGroup(b.name);
