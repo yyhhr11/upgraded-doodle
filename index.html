@@ -537,17 +537,14 @@ async function scan(){
   S.alerts=alerts.sort((a,b)=>b.score-a.score);
   renderAlerts();
   
-  // === 第7步：低位挖掘 ===
-  const toMine=alerts.filter(a=>a.lv==='strong'||a.lv==='medium');
-  for(const a of toMine.slice(0,3)){
-    const last=S.mined.find(m=>m.code===a.code);
-    if(last&&Date.now()-last._ts<600000)continue;
+  // === 第7步：低位挖掘（所有异动概念一一对应挖掘）===
+  S.mined=[]; // 每轮刷新，与当前异动概念一一对应
+  for(const a of alerts){
     const keywords=getKeywords(a.name),stocks=mineLow(a,keywords);
-    S.mined.unshift({...a,keywords,stocks,_ts:Date.now()});
-    if(S.mined.length>20)S.mined.pop();
-    renderMining();
-    if(stocks.length)toast('✅ 挖掘: '+stocks.length+'只低位标的','mining');
+    S.mined.push({...a,keywords,stocks,_ts:Date.now()});
+    if(stocks.length)toast('✅ '+a.name+' 挖掘: '+stocks.length+'只低位标的','mining');
   }
+  renderMining();
   
   const trading=isTrading();
   st.textContent=trading?'● 交易中':'○ 盘后';
@@ -560,17 +557,17 @@ async function scan(){
 function mineLow(board,keywords){
   const stocks=board.stocks||[],avg=board.change_pct;
   const seen=new Set(),results=[];
-  // 第一优先：从MINE库中取深度挖掘标的
+  // 第一优先：从MINE库中取深度挖掘标的（最多3只）
   for(const kw of keywords){
     const mstocks=MINE[kw]||[];
     for(const s of mstocks){
-      if(!seen.has(s.c)&&results.length<10){results.push({c:s.c,n:s.n,ch:0,src:'纯正·'+kw,logic:s.r});seen.add(s.c);}
+      if(!seen.has(s.c)&&results.length<3){results.push({c:s.c,n:s.n,ch:0,src:'纯正·'+kw,logic:s.r});seen.add(s.c);}
     }
   }
-  // 第二优先：概念内涨幅低于均值的低位股
+  // 第二优先：概念内涨幅低于均值的低位股（补齐到5只）
   const low=stocks.filter(c=>c.ch<9.5&&c.ch<avg&&!/ST/.test(c.n)).sort((a,b)=>a.ch-b.ch);
   for(const s of low){
-    if(!seen.has(s.c)&&results.length<10){
+    if(!seen.has(s.c)&&results.length<5){
       seen.add(s.c);
       let detail='';
       for(const kw of keywords){const mstocks=MINE[kw]||[];const found=mstocks.find(x=>x.c===s.c);if(found){detail=found.r;break;}}
@@ -578,7 +575,7 @@ function mineLow(board,keywords){
       else{const gap=(avg-s.ch).toFixed(1);results.push({c:s.c,n:s.n,ch:s.ch,src:'概念内低位',logic:'涨幅仅'+s.ch.toFixed(1)+'%，低于概念均值'+avg.toFixed(1)+'%约'+gap+'个百分点，补涨空间明确。'});}
     }
   }
-  return results.slice(0,10);
+  return results;
 }
 
 function isTrading(){const n=new Date();const bj=new Date(n.toLocaleString('en-US',{timeZone:'Asia/Shanghai'}));const t=bj.getHours()*60+bj.getMinutes();return bj.getDay()>=1&&bj.getDay()<=5&&((t>=540&&t<=690)||(t>=780&&t<=900))}
