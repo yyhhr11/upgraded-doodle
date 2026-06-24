@@ -413,8 +413,6 @@ async function fetchStockQuote(codes){
 
 const S={scan:0,alerts:[],mined:[],prev:{}};
 
-const S={scan:0,alerts:[],mined:[],prev:{}};
-
 async function scan(){
   S.scan++;const el=document.getElementById('sc'),st=document.getElementById('st'),si=document.getElementById('si');
   el.textContent='第'+S.scan+'轮 · '+new Date().toLocaleTimeString('zh-CN',{timeZone:'Asia/Shanghai',hour12:false});
