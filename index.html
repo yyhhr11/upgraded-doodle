@@ -49,6 +49,45 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei
 <div id="toast"></div>
 <script>
 
+// ===== 概念板块代码列表（细分到子领域）=====
+const BOARDS=[
+// AI & 算力
+"BK1134","BK0988","BK1023","BK1104","BK1136","BK0891","BK1059","BK0937",
+// 机器人 & 智造
+"BK1184","BK1157","BK1065",
+// 有色金属细分
+"BK1027","BK0478","BK0578","BK0547","BK0475","BK1026","BK1173",
+// 化工细分
+"BK1018","BK1435","BK1424","BK1022","BK1421","BK1020",
+// 医药细分
+"BK1106","BK0899","BK0465","BK0466","BK1044","BK1041","BK0986","BK0894","BK1063",
+// 新能源细分
+"BK0574","BK1028","BK1037","BK1053","BK1135","BK1145","BK0918","BK0700","BK1095",
+// 半导体细分
+"BK1101","BK1137","BK0884","BK0952","BK1048","BK1072",
+// 军工 & 科技
+"BK1043","BK1278",
+// 消费细分
+"BK0481","BK0477","BK0482","BK0487","BK1038","BK1099","BK0500","BK0889",
+// 金融
+"BK0473","BK0474","BK0479","BK0505",
+// 周期
+"BK0476","BK0480","BK1350"
+];
+const NAMES={
+"BK1134":"算力概念","BK0988":"CPO概念","BK1023":"AI芯片","BK1104":"液冷概念","BK1136":"铜缆高速连接","BK0891":"数据要素","BK1059":"东数西算","BK0937":"ChatGPT概念",
+"BK1184":"人形机器人","BK1157":"飞行汽车(eVTOL)","BK1065":"工业母机",
+"BK1027":"小金属","BK0478":"工业金属","BK0578":"稀土永磁","BK0547":"黄金概念","BK0475":"贵金属","BK1026":"能源金属","BK1173":"锂矿概念",
+"BK1018":"化学原料","BK1435":"磷化工","BK1424":"氟化工","BK1022":"电子化学品","BK1421":"钛白粉","BK1020":"非金属材料",
+"BK1106":"创新药","BK0899":"CRO","BK0465":"化学制药","BK0466":"中药","BK1044":"生物制品","BK1041":"医疗器械","BK0986":"CAR-T细胞疗法","BK0894":"阿兹海默","BK1063":"重组蛋白",
+"BK0574":"锂电池","BK1028":"固态电池","BK1037":"光伏设备","BK1053":"储能","BK1135":"氢能源","BK1145":"钙钛矿电池","BK0918":"特高压","BK0700":"充电桩","BK1095":"钒电池",
+"BK1101":"先进封装(Chiplet)","BK1137":"存储芯片(HBM)","BK0884":"光刻机(胶)","BK0952":"第三代半导体(SiC/GaN)","BK1048":"IGBT/功率半导体","BK1072":"EDA概念",
+"BK1043":"军工","BK1278":"游戏",
+"BK0481":"食品饮料","BK0477":"白酒","BK0482":"新零售","BK0487":"猪肉概念","BK1038":"医美概念","BK1099":"预制菜概念","BK0500":"家电行业","BK0889":"医美概念",
+"BK0473":"券商概念","BK0474":"保险","BK0479":"多元金融","BK0505":"中字头",
+"BK0476":"煤炭行业","BK0480":"石油行业","BK1350":"影视概念"
+};
+
 // ===== 催化原因库 =====
 const CATALYSTS={
 "算力概念":"📰 AI算力需求爆发+云厂商集体涨价+英伟达Rubin发布+国产算力芯片突破7nm",
@@ -364,100 +403,15 @@ function getKeywords(name){
 function getCatalyst(name){for(const[k,v]of Object.entries(CATALYSTS)){if(name.includes(k))return v}return'📰 催化：市场资金聚焦+板块轮动+技术面突破';}
 
 // ===== API =====
+async function fetchBoard(code){const u='https://push2.eastmoney.com/api/qt/clist/get?fid=f3&po=1&pz=200&pn=1&np=1&fltt=2&invt=2&fs=b:'+code+'&fields=f2,f3,f12,f14';try{const r=await fetch(u,{mode:'cors'});if(!r.ok)return null;const d=await r.json();if(d?.data?.diff)return d.data.diff.map(i=>({c:i.f12,n:i.f14,p:parseFloat(i.f2||0),ch:parseFloat(i.f3||0)}))}catch(e){}return null;}
 
 async function fetchStockQuote(codes){
-  // 批量查询个股行情
   const secids=codes.map(c=>(c.startsWith('6')?'1.'+c:'0.'+c)).join(',');
   const u='https://push2.eastmoney.com/api/qt/ulist.np/get?fltt=2&invt=2&fields=f2,f3,f12,f14&secids='+secids;
   try{const r=await fetch(u,{mode:'cors'});if(!r.ok)return[];const d=await r.json();if(d?.data?.diff)return d.data.diff.map(i=>({c:i.f12,n:i.f14,p:parseFloat(i.f2||0),ch:parseFloat(i.f3||0)}));}catch(e){}return[];
 }
 
 const S={scan:0,alerts:[],mined:[],prev:{}};
-
-// ===== 全市场涨幅榜API =====
-async function fetchTopGainers(pn=1,pz=80){
-  // 获取全市场（沪A+深A+创业板+科创板）涨幅排名
-  const fs='m:0+t:6,m:0+t:80,m:1+t:2,m:0+t:13';
-  const u='https://push2.eastmoney.com/api/qt/clist/get?fid=f3&po=1&pz='+pz+'&pn='+pn+'&np=1&fltt=2&invt=2&fs='+encodeURIComponent(fs)+'&fields=f2,f3,f12,f14';
-  try{
-    const r=await fetch(u,{mode:'cors'});
-    if(!r.ok)return[];
-    const d=await r.json();
-    if(d?.data?.diff)return d.data.diff.map(i=>({c:i.f12,n:i.f14,p:parseFloat(i.f2||0),ch:parseFloat(i.f3||0)}));
-  }catch(e){}
-  return[];
-}
-
-// ===== 推断概念（对不在映射库的个股）=====
-function inferConcept(code,name){
-  // 先查修正库
-  if(STOCK_CONCEPT_CORRECT[code])return STOCK_CONCEPT_CORRECT[code];
-  
-  // 基于名称/代码段的启发式规则
-  const rules=[
-    // 芯片/半导体
-    {ks:['光刻','容大','南大','晶瑞','上海新阳'],c:'光刻机(胶)'},
-    {ks:['存储','兆易','澜起','江波龙','佰维','北京君正'],c:'存储芯片(HBM)'},
-    {ks:['封测','封装','长电','通富','华天','Chiplet'],c:'先进封装(Chiplet)'},
-    {ks:['IGBT','功率','斯达','华润微','士兰','宏微','时代电气'],c:'IGBT/功率半导体'},
-    {ks:['SiC','GaN','碳化硅','氮化镓','天岳','天科'],c:'第三代半导体(SiC/GaN)'},
-    {ks:['刻蚀','薄膜','CVD','PVD','中微','北方华创','拓荆','芯源微'],c:'晶圆设备'},
-    {ks:['EDA','华大九天','概伦','广立微'],c:'EDA概念'},
-    {ks:['AI','算力','GPU','寒武纪','海光','景嘉微','龙芯'],c:'AI芯片'},
-    {ks:['光模块','光迅','中际','新易盛','天孚','剑桥','CPO'],c:'CPO概念'},
-    {ks:['液冷','散热','英维克','高澜','申菱','曙光数创'],c:'液冷概念'},
-    {ks:['服务器','浪潮','中科曙光','紫光','工业富联','拓维'],c:'算力概念'},
-    // 医药
-    {ks:['创新药','恒瑞','贝达','百济','君实','荣昌','信达','诺诚健华','迪哲'],c:'创新药'},
-    {ks:['CRO','CDMO','药明','泰格','康龙','凯莱英','昭衍','美迪西','博腾'],c:'CRO'},
-    {ks:['中药','同仁堂','白药','以岭','片仔癀','华润三九','步长','天士力','康缘'],c:'中药'},
-    {ks:['器械','医疗','迈瑞','联影','健帆','欧普','乐普','微创','威高'],c:'医疗器械'},
-    {ks:['制药','人福','科伦','恩华','华东','复星','丽珠','石药','中生'],c:'化学制药'},
-    // 新能源
-    {ks:['锂','电池','宁德','亿纬','国轩','孚能','天赐','璞泰来','恩捷','当升','新宙邦','德方','容百'],c:'锂电池'},
-    {ks:['光伏','晶科','天合','隆基','通威','晶澳','阳光电源','福斯特','锦浪','固德威','禾迈','昱能'],c:'光伏设备'},
-    {ks:['储能','派能','南都','科士达','科华','盛弘'],c:'储能'},
-    {ks:['固态电池','清陶','卫蓝'],c:'固态电池'},
-    {ks:['风电','金风','明阳','运达','电气风电','新强联','日月股份'],c:'新能源'},
-    {ks:['氢能','氢','亿华通','美锦','厚普','雪人'],c:'氢能源'},
-    {ks:['特高压','平高','许继','国电南瑞','中国西电','特变电工'],c:'特高压'},
-    {ks:['充电桩','特锐德','盛弘','通合','英可瑞'],c:'充电桩'},
-    // 有色
-    {ks:['稀土','北方稀土','金力','中科三环','宁波韵升','正海','英洛华'],c:'稀土永磁'},
-    {ks:['黄金','紫金','中金','山东黄金','赤峰','银泰','湖南黄金'],c:'黄金概念'},
-    {ks:['锂矿','天齐','赣锋','盐湖','雅化','盛新','融捷','川能'],c:'锂矿概念'},
-    {ks:['钨','钼','钽','中钨','翔鹭','厦门钨业','洛阳钼业','华锡','兴业银锡'],c:'小金属'},
-    {ks:['铜','铝','锌','云铝','神火','天山铝业','江西铜业','铜陵有色'],c:'工业金属'},
-    // 消费
-    {ks:['酒','茅台','五粮液','泸州','汾酒','洋河','古井','舍得','酒鬼','老窖'],c:'白酒'},
-    {ks:['食品','伊利','海天','金龙鱼','双汇','安井','洽洽','绝味','良品'],c:'食品饮料'},
-    {ks:['猪','牧原','温氏','新希望','正邦','天邦','傲农'],c:'猪肉概念'},
-    {ks:['家电','美的','格力','海尔','老板','苏泊尔','九阳','小熊'],c:'家电行业'},
-    // 金融
-    {ks:['券商','中信','华泰','国泰','海通','广发','招商','申万','银河','东方'],c:'券商概念'},
-    {ks:['保险','平安','太保','人保','国寿','新华'],c:'保险'},
-    {ks:['银行','工商','建设','农业','中国银行','交通','招商','兴业','浦发'],c:'多元金融'},
-    // 周期
-    {ks:['煤','神华','陕煤','兖矿','中煤','潞安','山西焦煤'],c:'煤炭行业'},
-    {ks:['石油','石化','中海油','中石油','中石化','恒力','荣盛','桐昆'],c:'石油行业'},
-    // 军工
-    {ks:['军工','航天','中航','航发','中国卫星','中国卫通','天银'],c:'军工'},
-    // 汽车
-    {ks:['汽车','比亚迪','长城','长安','广汽','上汽','吉利','赛力斯','江淮','北汽'],c:'新能源'},
-  ];
-  
-  for(const r of rules){
-    for(const kw of r.ks){
-      if(name.includes(kw)||code===kw)return r.c;
-    }
-  }
-  // 兜底：按代码段判断
-  if(code.startsWith('688'))return '科创板';
-  if(code.startsWith('300')||code.startsWith('301'))return '创业板';
-  if(code.startsWith('60')||code.startsWith('603')||code.startsWith('605'))return '沪市主板';
-  if(code.startsWith('00')||code.startsWith('002')||code.startsWith('003'))return '深市主板';
-  return '其他';
-}
 
 const S={scan:0,alerts:[],mined:[],prev:{}};
 
@@ -466,32 +420,40 @@ async function scan(){
   el.textContent='第'+S.scan+'轮 · '+new Date().toLocaleTimeString('zh-CN',{timeZone:'Asia/Shanghai',hour12:false});
   st.textContent='⏳ 扫描中...';st.className='status';
   
-  // === 第1步：获取全市场涨幅榜（前200只）===
-  si.textContent='获取涨幅榜...';
-  let allStocks=[];
-  for(let pn=1;pn<=3;pn++){
-    const batch=await fetchTopGainers(pn,80);
-    allStocks.push(...batch);
-    if(batch.length<80)break; // 不够80只说明已到底
+  // === 第1步：扫描所有概念板块，收集所有个股 ===
+  si.textContent='扫描板块...';
+  const boardResults=[];
+  for(let i=0;i<BOARDS.length;i+=8){
+    const batch=BOARDS.slice(i,i+8);
+    const ps=batch.map(async code=>{
+      const cons=await fetchBoard(code);
+      if(!cons||!cons.length)return null;
+      const name=NAMES[code]||code;
+      return{code,name,cons};
+    });
+    const br=await Promise.all(ps);boardResults.push(...br.filter(Boolean));
+    si.textContent=Math.min(i+8,BOARDS.length)+'/'+BOARDS.length+'板块';
   }
-  allStocks=allStocks.filter(s=>!isNaN(s.ch)&&!/ST/.test(s.n));
-  si.textContent=allStocks.length+'只大涨股';
   
-  // === 第2步：逐只归属概念 ===
+  // === 第2步：从每个板块中只取大涨个股(涨幅>3%)，用修正库重新归属概念 ===
   const conceptMap={}; // {conceptName: {stocks:[], change_sum:0, limit_up:0}}
-  const unclassified=[];
+  const seen=new Set(); // 同一只股票不重复计入
   
-  for(const s of allStocks){
-    const concept=inferConcept(s.c,s.n);
-    if(concept==='其他'||concept==='科创板'||concept==='创业板'||concept==='沪市主板'||concept==='深市主板'){
-      unclassified.push(s);
-      continue;
+  for(const br of boardResults){
+    for(const s of br.cons){
+      if(s.ch<3||seen.has(s.c))continue; // 只取涨幅>3%的个股，去重
+      seen.add(s.c);
+      
+      // 用修正库获取真实概念，没有则用板块名
+      const realConcept=STOCK_CONCEPT_CORRECT[s.c]||br.name;
+      
+      if(!conceptMap[realConcept])conceptMap[realConcept]={stocks:[],change_sum:0,limit_up:0,code:realConcept,name:realConcept};
+      conceptMap[realConcept].stocks.push(s);
+      conceptMap[realConcept].change_sum+=s.ch;
+      if(s.ch>=9.5)conceptMap[realConcept].limit_up++;
     }
-    if(!conceptMap[concept])conceptMap[concept]={stocks:[],change_sum:0,limit_up:0,code:concept,name:concept};
-    conceptMap[concept].stocks.push(s);
-    conceptMap[concept].change_sum+=s.ch;
-    if(s.ch>=9.5)conceptMap[concept].limit_up++;
   }
+  si.textContent=seen.size+'只大涨股';
   
   // === 第3步：聚合概念，计算均涨幅 ===
   const valid=[];
@@ -502,17 +464,14 @@ async function scan(){
     valid.push(cd);
   }
   
-  // === 第4步：补充新概念（东方财富没有的7个概念，用内置股票列表检测）===
+  // === 第4步：补充新概念（东方财富没有的7个概念）===
   for(const[nc,nd]of Object.entries(NEW_CONCEPTS)){
-    // 检查新概念的股票是否已经包含在已有概念中
     const existingConcept=valid.find(v=>v.name===nc);
-    if(existingConcept)continue; // 已存在则跳过
-    
-    // 获取新概念股票的行情
+    if(existingConcept)continue;
     const qs=await fetchStockQuote(nd.stocks);
     if(!qs||!qs.length)continue;
-    const risingStocks=qs.filter(s=>s.ch>0);
-    if(risingStocks.length<2)continue; // 至少2只上涨才构成概念
+    const risingStocks=qs.filter(s=>s.ch>3);
+    if(risingStocks.length<2)continue;
     const avg=risingStocks.reduce((s,x)=>s+x.ch,0)/risingStocks.length;
     const lups=risingStocks.filter(x=>x.ch>=9.5).length;
     valid.push({code:nc,name:nc,change_pct:avg,limit_up:lups,total:risingStocks.length,stocks:risingStocks,catalyst:nd.catalyst});
@@ -520,7 +479,7 @@ async function scan(){
   
   valid.sort((a,b)=>b.change_pct-a.change_pct);
   
-  // === 第5步：去重分组（同大方向只保留最强）===
+  // === 第5步：去重分组 ===
   const GROUPS={
     '🤖物理AI':['物理AI'],
     '🤖人形机器人':['人形机器人'],
@@ -594,7 +553,7 @@ async function scan(){
   const trading=isTrading();
   st.textContent=trading?'● 交易中':'○ 盘后';
   st.className='status '+(trading?'live':'dead');
-  si.textContent=valid.length+'概念 · '+alerts.length+'异动 · 扫描'+allStocks.length+'只个股';
+  si.textContent=valid.length+'概念 · '+alerts.length+'异动 · '+seen.size+'只大涨股';
   const strong=alerts.filter(a=>a.lv==='strong');
   if(strong.length)toast('🔴 '+strong[0].name+' +'+strong[0].change_pct.toFixed(1)+'%','strong');
 }
