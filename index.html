@@ -11,9 +11,8 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei
 #bar{display:flex;align-items:center;padding:10px 20px;background:var(--bg2);border-bottom:1px solid var(--border);gap:16px;flex-shrink:0}
 .logo{font-size:17px;font-weight:700}.status{font-size:12px;color:var(--t3)}.status.live{color:var(--g)}.status.dead{color:var(--r)}
 #main{display:flex;flex:1;overflow:hidden;gap:1px;background:var(--border)}
-#left{width:340px;background:var(--bg2);display:flex;flex-direction:column}
+#left{width:340px;min-width:340px;background:var(--bg2);display:flex;flex-direction:column}
 #mid{flex:1;background:var(--bg2);display:flex;flex-direction:column}
-#right{width:320px;background:var(--bg2);display:flex;flex-direction:column}
 .ph{display:flex;align-items:center;justify-content:space-between;padding:12px 16px;border-bottom:1px solid var(--border);flex-shrink:0}
 .ph h3{font-size:14px;font-weight:600}.badge{background:var(--r);color:#fff;font-size:11px;font-weight:700;padding:2px 8px;border-radius:10px}
 .scroll{flex:1;overflow-y:auto;padding:8px}.scroll::-webkit-scrollbar{width:4px}.scroll::-webkit-scrollbar-thumb{background:var(--border);border-radius:4px}
@@ -30,15 +29,14 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei
 .tbl{width:100%;border-collapse:collapse}.tbl th{text-align:left;font-size:11px;color:var(--t3);padding:6px 8px;border-bottom:1px solid var(--border)}.tbl td{padding:8px;font-size:13px;border-bottom:1px solid rgba(255,255,255,.04)}
 .sn{font-weight:600}.sc{font-size:11px;color:var(--t3);margin-left:6px}.ch{font-weight:600;font-size:12px}.ch.up{color:var(--r)}.ch.down{color:var(--g)}
 .stag{font-size:10px;padding:2px 8px;border-radius:10px;background:rgba(6,182,212,.15);color:var(--c);white-space:nowrap}
-.lc{font-size:11px;color:var(--t3);max-width:380px;line-height:1.5}
-.hi{padding:10px 12px;border-bottom:1px solid rgba(255,255,255,.04);border-radius:6px}.hi .ht{font-size:11px;color:var(--t3)}.hi .hb{font-size:14px;font-weight:600}.hi .hc{font-size:13px;font-weight:600;color:var(--r)}
+.lc{font-size:11px;color:var(--t3);max-width:600px;line-height:1.5}
 .emp{display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;text-align:center;padding:20px;color:var(--t3)}.emp .ei{font-size:48px;margin-bottom:12px;opacity:.6}
 #toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);z-index:9999;display:flex;flex-direction:column;gap:8px;align-items:center}
 .toast{padding:12px 24px;border-radius:10px;font-size:14px;font-weight:600;color:#fff;animation:ti .4s ease-out;max-width:500px;text-align:center;box-shadow:0 8px 32px rgba(0,0,0,.4)}
 .toast.strong{background:linear-gradient(135deg,#ef4444,#dc2626)}.toast.mining{background:linear-gradient(135deg,#8b5cf6,#7c3aed)}
 @keyframes ti{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
 #bottom{display:flex;align-items:center;justify-content:space-between;padding:6px 20px;background:var(--bg2);border-top:1px solid var(--border);font-size:11px;color:var(--t3);flex-shrink:0}
-@media(max-width:1100px){#main{flex-direction:column}#left,#mid,#right{width:100%;min-width:100%;max-height:33vh}}
+@media(max-width:1100px){#main{flex-direction:column}#left,#mid{width:100%;min-width:100%;max-height:50vh}}
 </style>
 </head>
 <body>
@@ -46,7 +44,6 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei
 <div id="main">
 <div id="left"><div class="ph"><h3>📊 概念异动</h3><span id="ab" class="badge">0</span></div><div id="al" class="scroll"><div class="emp"><div class="ei">👀</div><p>扫描中...</p></div></div></div>
 <div id="mid"><div class="ph"><h3>💎 低位挖掘</h3><span id="mb" class="badge" style="display:none">0</span></div><div id="mr" class="scroll"><div class="emp"><div class="ei">🎯</div><p>异动触发后自动挖掘</p></div></div></div>
-<div id="right"><div class="ph"><h3>📋 记录</h3><span id="hc" class="badge">0</span></div><div id="hl" class="scroll"><div class="emp"><p>暂无</p></div></div></div>
 </div>
 <div id="bottom"><span>数据:东方财富 · 年报/研报/e互动</span><span id="si"></span></div>
 <div id="toast"></div>
@@ -238,15 +235,24 @@ const MINE={
 // --- 医药 ---
 '创新药':[
   {c:'600276',n:'恒瑞医药',r:'创新药绝对龙头(2025研发投入超80亿)。在研创新药管线超100个，ADC/GLP-1/双抗全面布局。卡瑞利珠单抗等10+创新药已上市。国际化加速(海外临床超20项)。涨幅低于创新药板块均值，估值处5年低位。【信源:2025年报+研发日】'},
-  {c:'300558',n:'贝达药业',r:'创新药标杆(埃克替尼+恩沙替尼双十亿品种)。第三代EGFR-TKI贝福替尼纳入医保放量，在研管线含KRAS G12C等热门靶点。市值仅200亿+，同体量创新药企估值普遍300亿+。研发管线价值被低估。【信源:2025年报+e互动】'}
+  {c:'300558',n:'贝达药业',r:'创新药标杆(埃克替尼+恩沙替尼双十亿品种)。第三代EGFR-TKI贝福替尼纳入医保放量，在研管线含KRAS G12C等热门靶点。市值仅200亿+，同体量创新药企估值普遍300亿+。研发管线价值被低估。【信源:2025年报+e互动】'},
+  {c:'688235',n:'百济神州',r:'全球化创新药龙头(泽布替尼全球销售额超百亿)。BTK抑制剂全球BIC，PD-1替雷利珠单抗海外获批。2025年营收超300亿+45%，2026年有望首度盈利。在研TIGIT/BCL-2等重磅管线，估值仅4x PS。【信源:2025年报+ASCO数据】'},
+  {c:'688180',n:'君实生物',r:'PD-1龙头+新冠口服药+BTLA新靶点。特瑞普利单抗FDA获批出海(鼻咽癌)，海外授权收入弹性。在研管线含BTLA/TIGIT/CD112R等前沿靶点。市值不足300亿处历史低位。【信源:2025年报+研发日】'},
+  {c:'688331',n:'荣昌生物',r:'ADC药物龙头(维迪西妥单抗+泰它西普双核心)。维迪西妥单抗全球权益授权Seagen(首付2亿美元+里程碑24亿)，泰它西普SLE适应症全球多中心III期。2025年营收约15亿+50%，处商业化放量拐点。【信源:2025年报+海外临床】'}
 ],
 'CRO':[
   {c:'300347',n:'泰格医药',r:'临床CRO龙头(国内市占率第一12%)。创新药IND数量2025年同比+30%直接受益。海外收入占比45%+。在手订单饱满(同比+25%)。涨幅滞后于CXO板块均值，估值处历史低位。【信源:2025年报+行业数据】'},
-  {c:'603259',n:'药明康德',r:'CXO绝对龙头(CRDMO全产业链)。海外收入占比75%+全球化布局最完善。地缘风险已充分定价(股价自高点-70%)。在手订单超300亿元+20%增长。估值15x PE历史极低。【信源:2025年报+业绩指引】'}
+  {c:'603259',n:'药明康德',r:'CXO绝对龙头(CRDMO全产业链)。海外收入占比75%+全球化布局最完善。地缘风险已充分定价(股价自高点-70%)。在手订单超300亿元+20%增长。估值15x PE历史极低。【信源:2025年报+业绩指引】'},
+  {c:'300759',n:'康龙化成',r:'CRO+CDMO一体化平台(实验室服务+CMC+临床)。海外收入占比超80%，2025年营收超140亿+20%。小分子CDMO产能扩张(绍兴+英国)，大分子+CGT新业务培育。估值处历史10%分位。【信源:2025年报+投资者交流】'},
+  {c:'002821',n:'凯莱英',r:'小分子CDMO龙头(连续性反应技术壁垒高)。海外大药企订单占比超80%，商业化项目逐年递增。多肽/寡核苷酸新业务布局(GLP-1供应链)。2025年营收约100亿+15%，在手订单增长30%+。【信源:2025年报+业绩预告】'},
+  {c:'603127',n:'昭衍新药',r:'药物安全性评价龙头(GLP实验室国内规模第一)。新药IND申报安评必做环节，创新药景气度直接受益。实验动物成本下降+产能利用率提升，2025年毛利率修复至45%+。估值处历史低位。【信源:2025年报】'}
 ],
 '化学制药':[
   {c:'600196',n:'复星医药',r:'创新药+仿制药双龙头(2025营收约460亿)。在研创新药管线超80个，汉利康等生物类似药放量。复必泰(mRNA平台)可拓展至肿瘤疫苗。估值处5年低位，涨幅远低于创新药板块均值。【信源:2025年报+研发日资料】'},
-  {c:'600079',n:'人福医药',r:'麻醉药龙头(芬太尼系列市占率超60%)。麻醉药集采免疫+高壁垒(管制药品资质)。归核化战略聚焦核心业务。2025年净利增长约20%，估值仅15x PE处历史低位。【信源:2025年报】'}
+  {c:'600079',n:'人福医药',r:'麻醉药龙头(芬太尼系列市占率超60%)。麻醉药集采免疫+高壁垒(管制药品资质)。归核化战略聚焦核心业务。2025年净利增长约20%，估值仅15x PE处历史低位。【信源:2025年报】'},
+  {c:'002422',n:'科伦药业',r:'大输液龙头+仿制药+创新药三驱动。大输液市占率超40%稳定现金流，仿制药一致性评价获批数量行业前三。川宁生物(抗生素中间体)+科伦博泰(ADC)分拆上市释放价值。2025年营收约230亿+10%。【信源:2025年报+投资者互动】'},
+  {c:'002262',n:'恩华药业',r:'中枢神经药物龙头(麻醉+精神+神经三线)。右美托咪定/瑞芬太尼市占率领先，管制药品高壁垒。在研管线含TRV130镇痛新药等。2025年营收约60亿+15%，毛利率长期维持70%+。涨幅滞后于化学制药板块。【信源:2025年报】'},
+  {c:'000963',n:'华东医药',r:'医药工商业龙头+医美第二曲线。阿卡波糖/百令胶囊核心品种稳定，利拉鲁肽/司美格鲁肽GLP-1布局。医美业务(少女针/伊妍仕)营收约30亿+50%增长。2025年营收超420亿，估值仅15x PE处历史低位。【信源:2025年报+业绩说明会】'}
 ],
 '中药':[
   {c:'600085',n:'同仁堂',r:'中药金字招牌(安宫牛黄丸市占率超70%)。品牌壁垒极深+持续提价(2021-2025年累计提价超60%)。心脑血管+补益类产品线丰富。涨幅远低于中药概念均值。【信源:2025年报+行业研报】'},
@@ -255,12 +261,17 @@ const MINE={
 ],
 '医疗器械':[
   {c:'300760',n:'迈瑞医疗',r:'器械龙头(监护仪+超声+体外诊断全球前三)。海外收入占比42%且持续提升。AI辅助诊断(瑞影云+)差异化竞争。2025年营收约380亿+15%净利约130亿+18%。估值合理(25x PE)。【信源:2025年报+投资者关系记录】'},
-  {c:'300529',n:'健帆生物',r:'血液净化龙头(灌流器市占率超80%)。灌流器渗透率仅15%提升空间巨大。肾病+肝病+危重症三线拓展。股价自高点调整超70%估值处历史低位，业绩拐点明确。【信源:2025年报+业绩说明会】'}
+  {c:'300529',n:'健帆生物',r:'血液净化龙头(灌流器市占率超80%)。灌流器渗透率仅15%提升空间巨大。肾病+肝病+危重症三线拓展。股价自高点调整超70%估值处历史低位，业绩拐点明确。【信源:2025年报+业绩说明会】'},
+  {c:'688271',n:'联影医疗',r:'高端影像设备龙头(MR/CT/PET-CT国产第一)。PET-CT市占率国内第一，MR/CT国产替代加速(2025年MR市占率约25%)。海外收入占比超20%+快速增长(北美/欧洲获批)。2025年营收约140亿+20%，研发投入占比15%+。【信源:2025年报+招股书】'},
+  {c:'300595',n:'欧普康视',r:'角膜塑形镜龙头(OK镜市占率超25%国产第一)。青少年近视防控刚需(渗透率不足3%空间巨大)，自研离焦镜+护理产品生态。2025年营收约25亿+20%，集采影响可控(出厂价降幅有限)。估值处历史低位。【信源:2025年报】'}
 ],
 // --- 有色 ---
 '稀土永磁':[
   {c:'600111',n:'北方稀土',r:'全球最大稀土供应商(2025营收约350亿)。轻稀土开采配额占全国60%+。人形机器人拉动钕铁硼需求(单台机器人用磁材2-4kg)。稀土价格触底回升，涨幅低于稀土板块均值。【信源:2025年报+行业研报】'},
-  {c:'300748',n:'金力永磁',r:'钕铁硼磁材龙头(2025营收约80亿)。新能源车+风电+机器人三大增长极。特斯拉/比亚迪/蔚来核心供应商。晶界渗透技术领先行业。涨幅滞后于稀土永磁板块。【信源:2025年报+投资者互动】'}
+  {c:'300748',n:'金力永磁',r:'钕铁硼磁材龙头(2025营收约80亿)。新能源车+风电+机器人三大增长极。特斯拉/比亚迪/蔚来核心供应商。晶界渗透技术领先行业。涨幅滞后于稀土永磁板块。【信源:2025年报+投资者互动】'},
+  {c:'000970',n:'中科三环',r:'国内最大钕铁硼生产商(产能约2.5万吨/年)。特斯拉Model 3/Y永磁电机磁钢核心供应商(占特斯拉份额约30%)。人形机器人电机磁材需求增量弹性大。2025年营收约100亿，估值处历史低位PB约1.5x。【信源:2025年报+投资者互动】'},
+  {c:'600366',n:'宁波韵升',r:'钕铁硼磁材龙头(产能约1.2万吨/年)。消费电子+工业电机+新能源汽车三线布局。苹果磁吸充电磁钢供应商，伺服电机磁材占比提升。2025年营收约65亿+10%，估值低于中科三环约20%。【信源:2025年报+行业数据】'},
+  {c:'300224',n:'正海磁材',r:'钕铁硼磁材(产能约1万吨/年)+新能源汽车电机双主业。晶界扩散技术降重稀土用量30%+，成本优势显著。2025年磁材业务营收约45亿+15%，受益新能源车+风电+机器人多增长极。【信源:2025年报】'}
 ],
 '锂矿':[
   {c:'002466',n:'天齐锂业',r:'全球锂资源龙头(格林布什锂矿+Atacama盐湖)。锂精矿产能134万吨/年。锂价触底回升直接受益。SQM股权投资贡献稳定收益。涨幅低于锂矿概念均值，PB仅1.2x处历史低位。【信源:2025年报+行业数据】'},
@@ -274,62 +285,101 @@ const MINE={
 ],
 '存储芯片':[
   {c:'603986',n:'兆易创新',r:'NOR Flash全球第二+MCU国内龙头。参股长鑫存储(DRAM)，利基DRAM+存储MCU双赛道。AI终端(耳机/眼镜)存储需求爆发。2025年NOR Flash价格触底回升+20%。【信源:2025年报+行业数据】'},
-  {c:'688008',n:'澜起科技',r:'内存接口芯片全球龙头(DDR5市占率超50%)。CXL内存扩展芯片独家国产。AI服务器标配(每台需多颗内存接口芯片)。毛利率长期65%+高位。涨幅滞后于存储芯片板块。【信源:2025年报+研报】'}
+  {c:'688008',n:'澜起科技',r:'内存接口芯片全球龙头(DDR5市占率超50%)。CXL内存扩展芯片独家国产。AI服务器标配(每台需多颗内存接口芯片)。毛利率长期65%+高位。涨幅滞后于存储芯片板块。【信源:2025年报+研报】'},
+  {c:'301308',n:'江波龙',r:'存储模组龙头+自研主控芯片。Lexar品牌全球知名(消费级存储)，企业级SSD通过互联网大厂验证。2025年营收超200亿+30%，NAND/DRAM周期反转库存收益显著。自研主控芯片已量产降本。【信源:2025年报+投资者交流】'},
+  {c:'688525',n:'佰维存储',r:'嵌入式存储+工业级存储方案商。eMMC/UFS手机存储市占率提升，企业级SSD突破信创市场。2025年营收约50亿+50%，惠州封测基地投产毛利率提升。估值低于江波龙约40%。【信源:2025年报】'},
+  {c:'300223',n:'北京君正',r:'存储芯片(ISSI)+CPU双平台。SRAM全球第二/DRAM全球第七，车规存储市占率超40%全球第一。收购ISSI后车规+工业存储壁垒深厚，AI边缘计算(视觉SoC)第二增长极。2025年营收约55亿+10%。【信源:2025年报+行业研报】'}
 ],
 '光刻':[
-  {c:'300576',n:'容大感光',r:'PCB光刻胶龙头+半导体光刻胶新锐。g/i线光刻胶已量产KrF通过验证ArF研发中。PCB光刻胶市占率30%+稳定现金流。半导体光刻胶国产替代率不足10%空间巨大。【信源:2025年报+投资者互动】'}
+  {c:'300576',n:'容大感光',r:'PCB光刻胶龙头+半导体光刻胶新锐。g/i线光刻胶已量产KrF通过验证ArF研发中。PCB光刻胶市占率30%+稳定现金流。半导体光刻胶国产替代率不足10%空间巨大。【信源:2025年报+投资者互动】'},
+  {c:'300346',n:'南大光电',r:'MO源(半导体前驱体)全球龙头市占率40%+，ArF光刻胶通过中芯国际验证(国内首家)。前驱体业务2025年营收约12亿+30%，受益晶圆厂扩产周期。ArF光刻胶2026年有望批量供货，国产替代空间超百亿。【信源:2025年报+投资者互动】'},
+  {c:'300655',n:'晶瑞电材',r:'超纯化学品+光刻胶双主线。G5级超纯双氧水/氨水通过中芯/华虹验证(国内唯一)，i线/KrF光刻胶量产供货。2025年营收约20亿+15%，半导体材料营收占比提升至50%+。光刻胶国产替代核心标的。【信源:2025年报+招股书】'},
+  {c:'300236',n:'上海新阳',r:'半导体电镀液+清洗液龙头(中芯国际核心供应商)。铜互连电镀液市占率超50%，清洗液通过14nm验证。KrF光刻胶已量产(2025年营收约1亿)，ArF光刻胶研发中。2025年营收约15亿+20%，估值处历史低位。【信源:2025年报+投资者互动】'}
 ],
 '功率半导体':[
   {c:'603290',n:'斯达半导',r:'IGBT模块国内龙头(全球前十)。新能源车IGBT模块市占率国内第一25%+。SiC MOSFET已量产车规认证完备。风光储IGBT需求爆发。涨幅低于功率半导体概念均值。【信源:2025年报+行业研报】'},
-  {c:'688396',n:'华润微',r:'IDM功率半导体总龙头。自有8/12英寸产线MOSFET/IGBT/SiC全布局。车规IGBT+SiC二极管已量产。第三代半导体产线建设中。估值处历史低位。【信源:2025年报】'}
+  {c:'688396',n:'华润微',r:'IDM功率半导体总龙头。自有8/12英寸产线MOSFET/IGBT/SiC全布局。车规IGBT+SiC二极管已量产。第三代半导体产线建设中。估值处历史低位。【信源:2025年报】'},
+  {c:'600460',n:'士兰微',r:'IDM功率半导体龙头(6/8/12英寸自有产线)。IGBT/IPM/PIM全品类覆盖，白电IPM市占率超60%国内第一。12英寸产线产能爬坡至6万片/月，SiC产线建设中。2025年营收约120亿+15%，产能利用率提升驱动盈利修复。【信源:2025年报+投资者互动】'},
+  {c:'688187',n:'时代电气',r:'轨交电气龙头+新能源IGBT第二增长极。车规IGBT模块国内前三(配套中车/比亚迪)，SiC MOSFET 2026年量产。传感器+工业变流器多产品线。2025年营收约230亿+10%，轨交+新能源双轮驱动，估值仅15x PE。【信源:2025年报+研报】'},
+  {c:'688711',n:'宏微科技',r:'IGBT模块新锐(车规+工业双布局)。新能源车IGBT模块已批量供货比亚迪/小鹏等，2025年出货量翻倍。SiC模块样品通过车规验证。市值不足百亿弹性大，2025年营收约15亿+40%高增长。【信源:2025年报+业绩快报】'}
 ],
 '晶圆设备':[
   {c:'688012',n:'中微公司',r:'刻蚀设备龙头(CCP/ICP刻蚀机全球前三)。5nm/3nm刻蚀机已进入台积电产线。国产替代核心设备商受益中芯/华虹/长存扩产。2025年营收增长超40%。【信源:2025年报+研报】'},
   {c:'002371',n:'北方华创',r:'半导体设备平台型龙头(刻蚀+薄膜+清洗+炉管)。国产设备销售额第一产品线最全。中芯国际/长江存储核心供应商。去美化产线最大受益者。2025年订单增长超50%。【信源:2025年报】'},
   {c:'688072',n:'拓荆科技',r:'CVD/PVD/ALD薄膜设备龙头。PECVD设备国内市占率第一。ALD设备突破14nm以下制程。AI芯片制造薄膜沉积步骤翻倍→设备需求暴增。【信源:2025年报+投资者互动】'}
 ],
+// --- CPO ---
+'CPO':[
+  {c:'300308',n:'中际旭创',r:'全球光模块龙头(800G/1.6T市占率第一约30%)。英伟达/谷歌/亚马逊核心供应商，CPO硅光技术布局领先(收购Alpine)。2025年营收超300亿+60%，800G出货占比超50%。1.6T光模块2026H2放量，CPO交换机2027年量产。【信源:2025年报+OFC行业会议】'},
+  {c:'300502',n:'新易盛',r:'高速光模块龙头(400G/800G国内前三)。LPO线性直驱技术降功耗50%获Meta/微软青睐，800G DR8已批量出货。2025年营收约120亿+70%，毛利率超35%。1.6T光模块研发完成，硅光方案储备丰富。【信源:2025年报+投资者互动】'},
+  {c:'300394',n:'天孚通信',r:'光器件平台龙头(FA/隔离器/透镜/MUX/DEMUX全品类)。800G/1.6T光模块必备器件，全球市占率超40%。2025年营收约50亿+50%，毛利率超55%行业最高。CPO交换机光引擎核心器件供应商，单台价值量提升3-5倍。【信源:2025年报+研报】'}
+],
 // --- 新能源 ---
 '锂电池':[
   {c:'002709',n:'天赐材料',r:'电解液龙头(全球市占率30%+)。一体化成本优势(六氟磷酸锂自供)。LiFSI新型锂盐产能释放。电解液价格触底回升+出货量增长。估值处历史低位。【信源:2025年报+行业数据】'},
-  {c:'603659',n:'璞泰来',r:'负极材料龙头(市占率20%+)+涂覆隔膜。四川一体化产能释放降本。硅基负极布局领先。涨幅滞后于锂电池板块均值。估值处历史30%分位。【信源:2025年报】'}
+  {c:'603659',n:'璞泰来',r:'负极材料龙头(市占率20%+)+涂覆隔膜。四川一体化产能释放降本。硅基负极布局领先。涨幅滞后于锂电池板块均值。估值处历史30%分位。【信源:2025年报】'},
+  {c:'002812',n:'恩捷股份',r:'锂电隔膜全球龙头(湿法市占率超40%)。2025年隔膜出货量超80亿平米+25%，涂覆膜占比提升至50%+毛利率修复。海外客户(松下/LG/三星SDI)占比超30%。固态电池隔膜研发中。估值处历史10%分位。【信源:2025年报+行业数据】'},
+  {c:'300073',n:'当升科技',r:'正极材料龙头(高镍三元市占率国内前三)。超高镍9系+单晶正极量产供货，固态电池正极材料已送样。海外收入占比超40%(SK on/LG/Samsung)。2025年营收约300亿+20%，估值仅15x PE处历史低位。【信源:2025年报+投资者互动】'},
+  {c:'300037',n:'新宙邦',r:'电解液龙头(全球市占率约15%第二)+氟化工新材料。LiFSI新型锂盐自供率超80%，2025年电解液出货量约15万吨+20%。半导体化学品(电子级氨水/双氧水)第二增长曲线，2025年营收约80亿+15%。【信源:2025年报+行业数据】'}
 ],
 '光伏':[
   {c:'688599',n:'天合光能',r:'光伏组件龙头(全球出货前三)+分布式光伏+储能。N型TOPCon产能占比超80%。海外收入占比60%+。涨幅低于光伏板块均值。【信源:2025年报+行业研报】'},
-  {c:'688223',n:'晶科能源',r:'光伏组件全球出货第一。N型TOPCon技术领先(效率26%+)。海外产能布局(美国/中东/越南)。估值处行业低位(10x PE)。【信源:2025年报】'}
+  {c:'688223',n:'晶科能源',r:'光伏组件全球出货第一。N型TOPCon技术领先(效率26%+)。海外产能布局(美国/中东/越南)。估值处行业低位(10x PE)。【信源:2025年报】'},
+  {c:'300274',n:'阳光电源',r:'逆变器+储能系统双龙头(逆变器全球市占率30%+)。2025年逆变器出货超200GW+25%，储能系统出货超30GWh+60%。海外收入占比超60%(欧洲/美洲/中东)。氢能电解槽新增长极。【信源:2025年报+投资者交流】'},
+  {c:'603806',n:'福斯特',r:'光伏胶膜全球龙头(市占率超50%)。2025年胶膜出货量超25亿平米+20%，POE/EPE高附加值胶膜占比提升至40%。背板/感光干膜第二增长曲线。2025年营收约250亿+15%，估值处历史低位。【信源:2025年报+行业数据】'},
+  {c:'300763',n:'锦浪科技',r:'组串式逆变器龙头(户用+工商业分布式)。2025年逆变器出货超50GW+30%，储能逆变器占比提升至25%+。海外收入占比超50%(欧洲/巴西/东南亚)。2025年营收约120亿+25%，估值处历史低位。【信源:2025年报+投资者互动】'}
 ],
 // --- 机器人 ---
 '机器人':[
   {c:'300124',n:'汇川技术',r:'工业自动化龙头(2025营收451亿+22%净利50.5亿+18%)。伺服系统国内市占率31%第一，SCARA机器人市占率前三。机器人关节电机核心供应商，人形机器人产业链最上游确定性最强。估值合理(30x PE)。【信源:2025年报+投资者交流】'},
-  {c:'002747',n:'埃斯顿',r:'国产工业机器人本体龙头(出货量国内前三)。全产业链布局(控制器+伺服+本体)自主化率超80%。协作机器人+人形机器人研发中。市值仅汇川1/15弹性更大。【信源:2025年报】'}
+  {c:'002747',n:'埃斯顿',r:'国产工业机器人本体龙头(出货量国内前三)。全产业链布局(控制器+伺服+本体)自主化率超80%。协作机器人+人形机器人研发中。市值仅汇川1/15弹性更大。【信源:2025年报】'},
+  {c:'300607',n:'拓斯达',r:'工业机器人+注塑机辅机双主业。SCARA/六轴机器人出货量国内前十，注塑机辅机(机械手/三机一体)市占率超30%。2025年营收约60亿+15%，机器人业务占比提升至40%+。估值处历史低位PE约20x。【信源:2025年报+投资者互动】'},
+  {c:'300024',n:'机器人',r:'国产工业机器人先驱(新松品牌)。移动机器人(AGV/AMR)国内市占率第一约15%，半导体洁净机器人独家国产化。2025年营收约50亿+10%，新签订单增长30%+。央企背景(中科院)，特种机器人(军工/核工业)壁垒深厚。【信源:2025年报】'},
+  {c:'002527',n:'新时达',r:'电梯控制+工业机器人双主线。SCARA机器人出货量国内前三(市占率约8%)，电梯控制系统市占率超20%。2025年营收约45亿+12%，机器人业务营收约12亿+25%高增长。机器人关节减速器自研降本。【信源:2025年报】'}
 ],
 // --- 新概念 ---
 '物理AI':[
   {c:'301313',n:'凡拓数创',r:'自研3D数字孪生引擎+FTE物理仿真引擎，对接英伟达Cosmos平台。机器人虚拟实训/工厂/智驾三场景落地。2025年营收6.31亿元。市值仅索辰科技1/3，涨幅远低于物理AI板块均值。【信源:证券时报2026.4.28】'},
   {c:'688322',n:'奥比中光',r:'3D视觉传感器是物理AI感知端核心入口，VLA模型刚需硬件。2025年营收同比+67%扭亏为盈，AIoT业务毛利率57%。市值低于物理AI板块均值约40%。【信源:2025年报】'},
+  {c:'688083',n:'中望软件',r:'国产CAx(CAD/CAE/CAM)龙头，物理仿真引擎国产替代核心。3D CAD+结构/电磁/流体CAE全栈布局，对接英伟达Omniverse平台。2025年营收约10亿+25%，国产替代率不足5%空间巨大。估值低于海外对标(达索/ANSYS)约80%。【信源:2025年报+投资者交流】'},
+  {c:'002410',n:'广联达',r:'建筑信息化龙头+BIM数字孪生平台。BIM+AI设计(施工仿真/能耗模拟)对接物理AI应用，建筑行业数字化转型核心受益。2025年营收约70亿+15%，SaaS转型持续推进(云收入占比超50%)。估值处历史低位。【信源:2025年报】'}
 ],
 '人形机器人':[
   {c:'688017',n:'绿的谐波',r:'谐波减速器国内绝对龙头(市占60%+)，已进入特斯拉Optimus/优必选供应链。2026年1-4月新接订单超2025全年。单台人形机器人需14-28个谐波减速器，弹性最大。【信源:公司年报+券商研报】'},
   {c:'603728',n:'鸣志电器',r:'空心杯电机龙头，灵巧手驱动核心。特斯拉Optimus单手掌需6个空心杯电机。已进入特斯拉/优必选供应链，小市值高弹性标的(市值约200亿)。【信源:公司公告+知乎研报】'},
-  {c:'688400',n:'凌云光',r:'FZMotion光学动捕系统直接用于具身机器人数据采集与训练。2025年动捕业务收入同比+70%，已批量应用于多家头部机器人公司。涨幅远低于机器人板块均值约50%。【信源:2025年报】'},
+  {c:'688400',n:'凌云光',r:'FZMotion光学动捕系统直接用于具身机器人数据采集与训练。2025年动捕业务收入同比+70%，已批量应用于多家头部机器人公司。涨幅远低于机器人板块均值约50%。【信源:2025年报】'}
 ],
 '低空经济':[
   {c:'688631',n:'莱斯信息',r:'民航空管系统国产化主力，"天牧"低空飞行服务保障产品。上海/广东低空改革试点核心供应商。低空经济基础设施最确定受益标的，涨幅低于低空经济板块均值。【信源:公司公告+行业研报】'},
   {c:'001696',n:'宗申动力',r:'无人机航空发动机龙头(市占60%+)，深度绑定峰飞/沃飞长空等eVTOL头部企业。2026年规划低空动力营收占比超30%。估值处历史低位PE仅15x。【信源:公司公告+知乎】'},
+  {c:'688070',n:'纵横股份',r:'工业无人机龙头(垂直起降固定翼国内第一)。无人机+低空管控平台双主业，2025年营收约6亿+30%。低空经济飞行器整机+管控系统双受益，市值仅约50亿弹性大。【信源:2025年报+投资者互动】'},
+  {c:'000099',n:'中信海直',r:'通航运营龙头(直升机+无人机服务)。海上石油+应急救援+低空旅游三大场景，全国最大通航机队(超100架)。2025年营收约25亿+20%，低空经济飞行服务运营最直接受益。央企背景(中信集团)资源禀赋强。【信源:2025年报+行业研报】'},
+  {c:'002389',n:'航天彩虹',r:'军用+民用无人机双龙头(彩虹系列无人机全球知名)。无人机整机+机载武器系统，2025年营收约35亿+15%。低空经济物流无人机+测绘无人机民用场景拓展。军民融合+低空经济双催化。【信源:2025年报+投资者互动】'}
 ],
 '商业航天':[
   {c:'300342',n:'天银机电',r:'旗下天银星际为星敏感器核心供应商，低轨卫星必备姿态控制器件。星网GW+千帆+G60三大星座进入密集组网期。订单量/净利润均大幅提升。【信源:公司年报】'},
   {c:'688270',n:'臻镭科技',r:'宇航级电源管理芯片龙头，单星价值量高。低轨星座规模化建设放量受益，2025年订单增长超80%。【信源:公司年报+研报】'},
+  {c:'688066',n:'航天宏图',r:'遥感卫星应用龙头(PIE-Engine平台)。卫星遥感数据处理+AI解译，低轨星座组网后数据量暴增千倍。2025年营收约30亿+25%，SAR卫星星座(女娲星座)建设推进。涨幅远低于商业航天板块均值约50%。【信源:2025年报+投资者交流】'},
+  {c:'601698',n:'中国卫通',r:'卫星通信运营龙头(亚洲第二大固定卫星运营商)。Ka高通量卫星互联网已商用，低轨星座地面运营核心参与者。2025年营收约30亿+8%，高通量卫星带宽利用率提升驱动盈利改善。央企+唯一卫星运营商牌照稀缺。【信源:2025年报+行业研报】'},
+  {c:'300036',n:'超图软件',r:'GIS平台龙头+卫星遥感应用。SuperMap GIS国产替代(信创)，时空大数据+数字孪生城市。低轨星座组网后卫星数据应用(自然资源/农业/应急)核心软件平台。2025年营收约20亿+15%，估值处历史低位。【信源:2025年报】'}
 ],
 '智能驾驶':[
   {c:'300552',n:'万集科技',r:'车载激光雷达+车路协同方案商，128线机械式雷达已车规量产。L3级自动驾驶感知层核心硬件。市值远低于德赛西威/均胜电子，弹性更大。【信源:公司公告+百度百家】'},
+  {c:'688326',n:'经纬恒润',r:'汽车电子龙头(域控制器+ADAS+测试服务)。L2+/L3级域控制器已量产配套多家自主品牌，2025年营收约50亿+20%。ADAS市占率国内前三，T-BOX/V2X等车联网布局完善。估值处历史低位PE约30x。【信源:2025年报+投资者互动】'},
+  {c:'002405',n:'四维图新',r:'高精地图+自动驾驶解决方案龙头。高精地图覆盖全国高速/城市快速路超40万公里(L3级自动驾驶刚需)。2025年营收约40亿+10%，智驾方案(行泊一体)定点超20个车型。国资背景+地图牌照稀缺壁垒。【信源:2025年报+投资者互动】'},
+  {c:'002970',n:'锐明技术',r:'商用车车联网龙头(车载视频监控全球前三)。ADAS+DMS+BSD多传感器融合方案，2025年营收约25亿+25%。海外收入占比超50%(北美/欧洲/中东)，商用车L3级智驾法规落地核心受益。【信源:2025年报+行业研报】'}
 ],
 '脑机接口':[
   {c:'002173',n:'创新医疗',r:'通过参股博灵脑机布局脑机接口，博灵完成多例临床实验。2026年脑机接口首入政府工作报告，与量子科技/具身智能并列未来产业。市值不足百亿弹性大。【信源:公司公告+知乎】'},
   {c:'301293',n:'三博脑科',r:'脑科专科医院龙头，神经外科手术量国内前三。脑机接口临床应用最直接场景(神经疾病治疗+脑机康复)。【信源:公司年报+知乎】'},
+  {c:'300238',n:'冠昊生物',r:'再生医学+神经修复材料龙头。硬脑膜/人工骨等植入材料市占率超30%，神经修复材料用于脑损伤修复(脑机接口植入后关键配套)。2025年营收约6亿+15%，再生医学+脑科学双主线。【信源:2025年报+投资者互动】'},
+  {c:'300003',n:'乐普医疗',r:'心血管器械龙头+神经调控布局。心脏起搏器/除颤器(植入式有源器械技术积累深厚)，神经调控(DBS/VNS)在研管线为脑机接口技术储备。2025年营收约110亿+10%，估值处历史低位PE约18x。【信源:2025年报+研发管线】'}
 ],
 '可控核聚变':[
   {c:'600875',n:'东方电气',r:'聚变堆核心设备(超导磁体/偏滤器)供应商，参与BEST/ITER项目。中国聚变能源公司注册资本增至150亿元，设备采购将加速。【信源:公司公告+券商研报】'},
   {c:'002534',n:'西子洁能',r:'聚变堆热管理/换热系统核心供应商。核聚变热工系统关键设备，受益BEST装置加速推进。【信源:公司公告+百度百家】'},
+  {c:'600550',n:'保变电气',r:'特高压变压器龙头+聚变堆电源设备。聚变装置等离子体加热电源/磁体电源核心供应商，2025年营收约40亿+10%。ITER/CFETR项目电源系统国产替代核心，估值低于东方电气约30%。【信源:2025年报+投资者互动】'},
+  {c:'000969',n:'安泰科技',r:'难熔金属材料龙头(钨/钼/钽)。聚变堆第一壁材料(钨基)国内唯一供应商，ITER项目供货超10年。2025年营收约70亿+8%，聚变堆+半导体+军工多增长极。估值处历史低位PB约1.8x。【信源:2025年报+ITER项目资料】'}
 ],
 };
 
@@ -340,9 +390,10 @@ function getKeywords(name){
     '小金属':['算力金属','钽电容'],'工业金属':['算力金属','钽电容'],'稀土永磁':['稀土永磁'],'黄金概念':['稀土永磁'],'锂矿概念':['锂矿'],
     '非金属材料':['氧化锆'],'化学原料':['氟化工','磷化工'],'磷化工':['磷化工'],'氟化工':['氟化工'],'电子化学品':['氟化工'],
     '创新药':['创新药'],'CRO':['CRO'],'化学制药':['化学制药'],'中药':['中药'],'医疗器械':['医疗器械'],'生物制品':['化学制药'],'CAR-T':['创新药'],'阿兹海默':['创新药'],'重组蛋白':['CRO'],
-    '锂电池':['锂电池'],'固态电池':['磷化工'],'光伏设备':['光伏'],'氢能源':['氟化工'],
+    '锂电池':['锂电池'],'固态电池':['锂电池','磷化工'],'光伏设备':['光伏'],'氢能源':['氟化工'],'储能':['光伏'],'特高压':['功率半导体'],'充电桩':['功率半导体'],'钒电池':['锂电池'],
     '先进封装':['先进封装'],'存储芯片':['存储芯片'],'光刻机':['光刻'],'第三代半导体':['功率半导体'],'IGBT':['功率半导体'],'EDA':['晶圆设备'],
     '人形机器人':['机器人'],'工业母机':['机器人'],
+    '飞行汽车':['低空经济'],'液冷':['算力金属'],'ChatGPT':['磷化铟'],'军工':['商业航天'],'东数西算':['算力金属'],
     '物理AI':['物理AI'],'低空经济':['低空经济'],'商业航天':['商业航天'],'智能驾驶':['智能驾驶'],'脑机接口':['脑机接口'],'可控核聚变':['可控核聚变']
   };
   for(const[k,v]of Object.entries(m)){if(name.includes(k))return v}
@@ -360,7 +411,7 @@ async function fetchStockQuote(codes){
   try{const r=await fetch(u,{mode:'cors'});if(!r.ok)return[];const d=await r.json();if(d?.data?.diff)return d.data.diff.map(i=>({c:i.f12,n:i.f14,p:parseFloat(i.f2||0),ch:parseFloat(i.f3||0)}));}catch(e){}return[];
 }
 
-const S={scan:0,alerts:[],mined:[],hist:[],prev:{}};
+const S={scan:0,alerts:[],mined:[],prev:{}};
 
 async function scan(){
   S.scan++;const el=document.getElementById('sc'),st=document.getElementById('st'),si=document.getElementById('si');
@@ -439,7 +490,6 @@ async function scan(){
   const alerts=[];for(const b of deduped){let score=0;const reasons=[];const p=b.change_pct,lu=b.limit_up;if(p>=5){score+=50;reasons.push('+'+p.toFixed(1)+'%')}else if(p>=3){score+=35;reasons.push('+'+p.toFixed(1)+'%')}else if(p>=2)score+=20;const prev=S.prev[b.code];if(prev&&p-prev>1.5){score+=35;reasons.push('急拉')}if(lu>=5){score+=50;reasons.push(lu+'只涨停')}else if(lu>=3){score+=35;reasons.push(lu+'只涨停')}S.prev[b.code]=p;let lv='none';if(score>=85)lv='strong';else if(score>=55)lv='medium';else if(score>=30)lv='weak';if(lv!=='none'){const tops=b.cons.sort((a,b)=>b.ch-a.ch).slice(0,5);alerts.push({...b,score,lv,reasons,time:new Date().toLocaleTimeString('zh-CN',{hour12:false}),catalyst:b.catalyst||getCatalyst(b.name),topStocks:tops});}}
   S.alerts=alerts.sort((a,b)=>b.score-a.score);renderAlerts();
   const toMine=alerts.filter(a=>a.lv==='strong'||a.lv==='medium');for(const a of toMine.slice(0,3)){const last=S.mined.find(m=>m.code===a.code);if(last&&Date.now()-last._ts<600000)continue;const keywords=getKeywords(a.name),stocks=mineLow(a,keywords);S.mined.unshift({...a,keywords,stocks,_ts:Date.now()});if(S.mined.length>20)S.mined.pop();renderMining();if(stocks.length)toast('✅ 挖掘: '+stocks.length+'只低位标的','mining');}
-  for(const a of alerts){S.hist.push({t:a.time,b:a.name,ch:a.change_pct,lv:a.lv});if(S.hist.length>100)S.hist.shift()}renderHist();
   const trading=isTrading();st.textContent=trading?'● 交易中':'○ 盘后';st.className='status '+(trading?'live':'dead');si.textContent=valid.length+'概念 · '+alerts.length+'异动';
   const strong=alerts.filter(a=>a.lv==='strong');if(strong.length)toast('🔴 '+strong[0].name+' +'+strong[0].change_pct.toFixed(1)+'%','strong');
 }
@@ -449,13 +499,13 @@ function mineLow(board,keywords){const cons=board.cons||[],avg=board.change_pct;
   for(const kw of keywords){
     const stocks=MINE[kw]||[];
     for(const s of stocks){
-      if(!seen.has(s.c)&&results.length<8){results.push({c:s.c,n:s.n,ch:0,src:'纯正·'+kw,logic:s.r});seen.add(s.c);}
+      if(!seen.has(s.c)&&results.length<10){results.push({c:s.c,n:s.n,ch:0,src:'纯正·'+kw,logic:s.r});seen.add(s.c);}
     }
   }
   // 第二优先：从概念成分股中找涨幅低于均值的低位股（附带简要逻辑）
   const low=cons.filter(c=>c.ch<9.5&&c.ch<avg&&!/ST/.test(c.n)).sort((a,b)=>a.ch-b.ch);
   for(const s of low){
-    if(!seen.has(s.c)&&results.length<8){
+    if(!seen.has(s.c)&&results.length<10){
       seen.add(s.c);
       // 尝试从MINE库中匹配该股票的详细逻辑
       let detail='';
@@ -468,7 +518,7 @@ function mineLow(board,keywords){const cons=board.cons||[],avg=board.change_pct;
       }
     }
   }
-  return results.slice(0,8);
+  return results.slice(0,10);
 }
 
 function isTrading(){const n=new Date();const bj=new Date(n.toLocaleString('en-US',{timeZone:'Asia/Shanghai'}));const t=bj.getHours()*60+bj.getMinutes();return bj.getDay()>=1&&bj.getDay()<=5&&((t>=570&&t<=690)||(t>=780&&t<=900))}
@@ -476,8 +526,6 @@ function isTrading(){const n=new Date();const bj=new Date(n.toLocaleString('en-U
 function renderAlerts(){const el=document.getElementById('al');document.getElementById('ab').textContent=S.alerts.length;if(!S.alerts.length){el.innerHTML='<div class="emp"><div class="ei">👀</div><p>暂无显著异动</p></div>';return}el.innerHTML=S.alerts.map(a=>{const tops=a.topStocks||[];return'<div class="acard '+(a.lv==='strong'?'s':a.lv==='medium'?'m':'w')+'"><div class="bn">'+(a.lv==='strong'?'🔴':a.lv==='medium'?'🟡':'🟢')+' '+a.name+'</div><div class="st"><span>涨幅 <span class="sv up">+'+a.change_pct.toFixed(1)+'%</span></span><span>涨停 <span class="sv">'+a.limit_up+'</span>只</span><span>成分 <span class="sv">'+a.total+'</span>只</span><span>得分 <span class="sv">'+a.score+'</span></span></div>'+(a.catalyst?'<div class="reason">'+a.catalyst+'</div>':'')+(tops.length?'<div style="font-size:11px;color:var(--t2);margin-top:6px;line-height:1.6">🔥 领涨：'+tops.map(s=>'<span style="color:'+(s.ch>=9.5?'var(--r)':'var(--t)')+';font-weight:600">'+s.n+'</span><span style="color:'+(s.ch>=0?'var(--r)':'var(--g)')+'">'+(s.ch>=0?'+':'')+s.ch.toFixed(1)+'%</span>').join(' | ')+'</div>':'')+'<div class="ts">'+a.time+'</div></div>'}).join('');}
 
 function renderMining(){const el=document.getElementById('mr'),bd=document.getElementById('mb');if(!S.mined.length){el.innerHTML='<div class="emp"><div class="ei">🎯</div><p>异动触发后自动挖掘</p></div>';bd.style.display='none';return}bd.style.display='';bd.textContent=S.mined.length;el.innerHTML=S.mined.map(m=>{const tops=m.topStocks||[];return'<div class="mblock"><div class="bt">💎 '+m.name+' <span style="color:var(--r);font-size:14px">+'+m.change_pct.toFixed(1)+'%</span></div><div class="bm">'+m.time+' | '+m.lv+' | '+m.total+'只成分股 | '+m.limit_up+'只涨停</div>'+(m.catalyst?'<div class="catalyst">'+m.catalyst+'</div>':'')+(tops.length?'<div style="font-size:11px;color:var(--t2);margin-bottom:8px;line-height:1.6">🔥 领涨龙头：'+tops.map(s=>'<span style="color:'+(s.ch>=9.5?'var(--r)':'var(--t)')+';font-weight:600">'+s.n+'</span><span style="color:'+(s.ch>=0?'var(--r)':'var(--g)')+'">'+(s.ch>=0?'+':'')+s.ch.toFixed(1)+'%</span>').join(' | ')+'</div>':'')+(m.keywords?.length?'<div class="ctags">🔥 炒作关键词：'+m.keywords.map(c=>'<span class="ctag">'+c+'</span>').join(' ')+'</div>':'')+'<div class="summary">📌 概念「'+m.name+'」均涨幅+'+m.change_pct.toFixed(1)+'%，'+m.limit_up+'只涨停。挖掘'+m.stocks.length+'只低位纯正标的。</div>'+(m.stocks?.length?'<table class="tbl"><thead><tr><th>股票</th><th>来源</th><th>逻辑</th></tr></thead><tbody>'+m.stocks.map(s=>'<tr><td><span class="sn">'+s.n+'</span><span class="sc">'+s.c+'</span>'+(s.ch?'<span class="ch '+(s.ch>0?'up':'down')+'">'+(s.ch>0?'+':'')+s.ch+'%</span>':'')+'</td><td><span class="stag">'+(s.src||'概念')+'</span></td><td class="lc">'+(s.logic||'-')+'</td></tr>').join('')+'</tbody></table>':'<p style="color:var(--t3);padding:8px">未找到低位标的</p>')+'</div>'}).join('');}
-
-function renderHist(){const el=document.getElementById('hl');document.getElementById('hc').textContent=S.hist.length;if(!S.hist.length){el.innerHTML='<div class="emp"><p>暂无</p></div>';return}el.innerHTML=S.hist.slice(-30).reverse().map(h=>'<div class="hi"><div class="ht">'+h.t+'</div><div class="hb">'+h.b+'</div><span class="hc">+'+h.ch.toFixed(1)+'%</span></div>').join('');}
 
 function toast(msg,type){const e=document.createElement('div');e.className='toast '+type;e.textContent=msg;document.getElementById('toast').appendChild(e);setTimeout(()=>e.remove(),5000)}
 document.addEventListener('DOMContentLoaded',()=>{document.getElementById('st').textContent='⏳ 首次扫描...';scan();setInterval(scan,30000)});
