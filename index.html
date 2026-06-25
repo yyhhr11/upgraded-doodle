@@ -782,10 +782,44 @@ async function scan(){
   S.alerts=alerts.sort((a,b)=>b.score-a.score);
   renderAlerts();
   
+  // === 第6.5步：构建概念→完整成分股映射表（用于低位挖掘）===
+  const fullBoardMap={}; // {概念名: {stocks:[...], avg: number}}
+  // 优先从 boardResults（东方财富板块完整数据）中获取
+  for(const br of boardResults){
+    if(!br.cons||!br.cons.length)continue;
+    const allStocks=br.cons.filter(s=>!/^[89]/.test(s.c)&&!/ST/.test(s.n));
+    if(!allStocks.length)continue;
+    const avg=allStocks.reduce((a,s)=>a+s.ch,0)/allStocks.length;
+    fullBoardMap[br.name]={
+      stocks:allStocks,
+      avg:avg,
+      code:br.code
+    };
+  }
+  // 对于拆分出来的子概念/新概念，尝试从 keywords 映射回原始板块获取完整数据
+  for(const a of alerts){
+    if(!fullBoardMap[a.name]){
+      const keywords=getKeywords(a.name);
+      for(const kw of keywords){
+        if(fullBoardMap[kw]){fullBoardMap[a.name]=fullBoardMap[kw];break;}
+      }
+    }
+    // 如果还是没有（如 NEW_CONCEPTS），用 alert 自带 stocks 作为兜底
+    if(!fullBoardMap[a.name]&&a.stocks&&a.stocks.length){
+      fullBoardMap[a.name]={
+        stocks:a.stocks,
+        avg:a.change_pct||a.stocks.reduce((s,x)=>s+x.ch,0)/a.stocks.length
+      };
+    }
+  }
+  
   // === 第7步：低位挖掘（所有异动概念一一对应挖掘）===
   S.mined=[]; // 每轮刷新，与当前异动概念一一对应
   for(const a of alerts){
-    const keywords=getKeywords(a.name),stocks=mineLow(a,keywords);
+    const keywords=getKeywords(a.name);
+    // 使用完整成分股数据进行挖掘
+    const fullData=fullBoardMap[a.name];
+    const stocks=mineLow(a,keywords,fullData);
     S.mined.push({...a,keywords,stocks,_ts:Date.now()});
     if(stocks.length)toast('✅ '+a.name+' 挖掘: '+stocks.length+'只低位标的','mining');
   }
@@ -799,10 +833,12 @@ async function scan(){
   if(strong.length)toast('🔴 '+strong[0].name+' +'+strong[0].change_pct.toFixed(1)+'%','strong');
 }
 
-function mineLow(board,keywords){
-  const stocks=board.stocks||[],avg=board.change_pct;
+function mineLow(board,keywords,fullData){
+  // 优先使用完整成分股数据，兜底用 board.stocks（仅大涨股）
+  const fullStocks=fullData?.stocks||board.stocks||[];
+  const avg=fullData?.avg||board.change_pct||0;
   // 建立股票代码→实时数据的映射
-  const liveMap={};for(const s of stocks)liveMap[s.c]=s;
+  const liveMap={};for(const s of fullStocks)liveMap[s.c]=s;
   const seen=new Set(),results=[];
   // 第一优先：从MINE库中取深度挖掘标的（最多3只），匹配实时涨幅，成交额≥10亿
   for(const kw of keywords){
@@ -816,8 +852,8 @@ function mineLow(board,keywords){
       }
     }
   }
-  // 第二优先：概念内涨幅低于均值的低位股（补齐到5只），成交额≥10亿
-  const low=stocks.filter(c=>c.ch<9.5&&c.ch<avg&&!/ST/.test(c.n)&&!/^[89]/.test(c.c)&&c.amt>=1e9).sort((a,b)=>a.ch-b.ch);
+  // 第二优先：从完整成分股中找涨幅低于均值的真正低位股（补齐到5只），成交额≥10亿
+  const low=fullStocks.filter(c=>c.ch<9.5&&c.ch<avg&&!/ST/.test(c.n)&&!/^[89]/.test(c.c)&&c.amt>=1e9).sort((a,b)=>a.ch-b.ch);
   for(const s of low){
     if(!seen.has(s.c)&&results.length<5){
       seen.add(s.c);
