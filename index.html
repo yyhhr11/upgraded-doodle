@@ -13,6 +13,7 @@
 body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif;background:var(--bg);color:var(--t);height:100vh;display:flex;flex-direction:column;overflow:hidden}
 #bar{display:flex;align-items:center;padding:10px 20px;background:var(--bg2);border-bottom:1px solid var(--border);gap:16px;flex-shrink:0}
 .logo{font-size:17px;font-weight:700}.status{font-size:12px;color:var(--t3)}.status.live{color:var(--g)}.status.dead{color:var(--r)}
+#marketBar{display:flex;align-items:center;gap:14px;flex:1;overflow-x:auto;padding:0 4px}.mi{display:flex;align-items:center;gap:4px;white-space:nowrap}.mil{font-size:10px;color:var(--t3)}.miv{font-size:13px;font-weight:700;color:var(--t)}.mip{font-size:11px;font-weight:600}.mip.up{color:var(--r)}.mip.down{color:var(--g)}.mip.flat{color:var(--t3)}.ms{padding:2px 8px;background:rgba(255,255,255,.04);border-radius:6px}
 #main{display:flex;flex:1;overflow:hidden;gap:1px;background:var(--border)}
 #left{width:340px;min-width:340px;background:var(--bg2);display:flex;flex-direction:column}
 #mid{flex:1;background:var(--bg2);display:flex;flex-direction:column}
@@ -43,7 +44,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei
 </style>
 </head>
 <body>
-<div id="bar"><div class="logo">🔥 A股概念异动监控</div><span id="st" class="status">⏳ 加载中...</span><span style="font-size:11px;color:var(--t3);margin-left:auto" id="sc">就绪</span></div>
+<div id="bar"><div class="logo">🔥 A股概念异动监控</div><span id="st" class="status">⏳ 加载中...</span><div id="marketBar"><span class="mi"><span class="mil">上证</span><span id="m_sh" class="miv">--</span><span id="m_sh_pct" class="mip">--</span></span><span class="mi"><span class="mil">深证</span><span id="m_sz" class="miv">--</span><span id="m_sz_pct" class="mip">--</span></span><span class="mi"><span class="mil">创业板</span><span id="m_cy" class="miv">--</span><span id="m_cy_pct" class="mip">--</span></span><span class="mi ms"><span class="mil">上涨</span><span id="m_up" class="miv" style="color:#ef4444">--</span></span><span class="mi ms"><span class="mil">下跌</span><span id="m_dn" class="miv" style="color:#22c55e">--</span></span><span class="mi ms"><span class="mil">成交</span><span id="m_amt" class="miv" style="color:#e8eaed">--</span></span></div><span style="font-size:11px;color:var(--t3);margin-left:auto" id="sc">就绪</span></div>
 <div id="main">
 <div id="left"><div class="ph"><h3>📊 概念异动</h3><span id="ab" class="badge">0</span></div><div id="al" class="scroll"><div class="emp"><div class="ei">👀</div><p>扫描中...</p></div></div></div>
 <div id="mid"><div class="ph"><h3>💎 低位挖掘</h3><span id="mb" class="badge" style="display:none">0</span></div><div id="mr" class="scroll"><div class="emp"><div class="ei">🎯</div><p>异动触发后自动挖掘</p></div></div></div>
@@ -2424,12 +2425,105 @@ async function fetchStockQuote(codes){
   try{const r=await fetch(u,{mode:'cors'});if(!r.ok)return[];const d=await r.json();if(d?.data?.diff)return d.data.diff.map(i=>({c:i.f12,n:i.f14,p:parseFloat(i.f2||0),ch:parseFloat(i.f3||0)}));}catch(e){}return[];
 }
 
+// ===== 大盘行情概览 =====
+let lastMarketData=null; // 盘后保留最后一次大盘数据
+
+async function fetchMarketOverview(){
+  try{
+    // 获取三大指数：上证(1.000001)、深证(0.399001)、创业板(0.399006)
+    // fields: f2=最新价, f3=涨跌幅, f4=涨跌额, f12=代码, f14=名称, f104=上涨家数, f105=下跌家数, f106=平盘家数
+    const idxUrl='https://push2.eastmoney.com/api/qt/ulist.np/get?fltt=2&invt=2&fields=f2,f3,f4,f12,f14,f104,f105,f106&secids=1.000001,0.399001,0.399006';
+    const ctrl=new AbortController();
+    const t=setTimeout(()=>ctrl.abort(),5000);
+    const r=await fetch(idxUrl,{signal:ctrl.signal});
+    clearTimeout(t);
+    if(!r.ok)return null;
+    const d=await r.json();
+    if(!d?.data?.diff)return null;
+
+    // 获取两市成交额（上证+深证）
+    let totalAmt=0;
+    try{
+      const amtUrl='https://push2.eastmoney.com/api/qt/stock/get?invt=2&fltt=2&fields=f48&secid=1.000001';
+      const amtUrl2='https://push2.eastmoney.com/api/qt/stock/get?invt=2&fltt=2&fields=f48&secid=0.399001';
+      const[ar1,ar2]=await Promise.all([
+        fetch(amtUrl,{signal:ctrl.signal}).then(r=>r.json()).catch(()=>null),
+        fetch(amtUrl2,{signal:ctrl.signal}).then(r=>r.json()).catch(()=>null)
+      ]);
+      const a1=ar1?.data?.f48||0;
+      const a2=ar2?.data?.f48||0;
+      totalAmt=a1+a2;
+    }catch(e){}
+
+    const result={indices:{},up:0,down:0,flat:0,totalAmt:0};
+    for(const idx of d.data.diff){
+      const code=idx.f12;
+      const name=idx.f14;
+      result.indices[code]={
+        name:name,
+        price:idx.f2,
+        chPct:idx.f3,
+        chVal:idx.f4,
+        up:idx.f104||0,
+        down:idx.f105||0,
+        flat:idx.f106||0
+      };
+      // 使用上证的家数统计（上证涵盖沪市全貌）
+      if(code==='000001'){
+        result.up=idx.f104||0;
+        result.down=idx.f105||0;
+        result.flat=idx.f106||0;
+      }
+    }
+    result.totalAmt=totalAmt;
+    lastMarketData=result;
+    return result;
+  }catch(e){return lastMarketData;} // 出错时返回上次数据
+}
+
+function renderMarketOverview(data){
+  if(!data)return;
+  const formatPrice=(p,code)=>{
+    // 上证和深证显示整数，创业板显示到整数
+    return p!=null?p.toFixed(code==='399006'?0:0):'--';
+  };
+  const formatPct=v=>v!=null?(v>0?'+':'')+v.toFixed(2)+'%':'--';
+  const formatAmt=v=>{
+    if(!v||v<=0)return'--';
+    if(v>=1e12)return(v/1e12).toFixed(2)+'万亿';
+    if(v>=1e8)return(v/1e8).toFixed(0)+'亿';
+    return(v/1e4).toFixed(0)+'万';
+  };
+  const idxMap={'000001':'sh','399001':'sz','399006':'cy'};
+  for(const[code,prefix]of Object.entries(idxMap)){
+    const idx=data.indices[code];
+    if(!idx)continue;
+    const vEl=document.getElementById('m_'+prefix);
+    const pEl=document.getElementById('m_'+prefix+'_pct');
+    if(vEl)vEl.textContent=formatPrice(idx.price,code);
+    if(pEl){
+      pEl.textContent=formatPct(idx.chPct);
+      pEl.className='mip '+(idx.chPct>0?'up':idx.chPct<0?'down':'flat');
+    }
+  }
+  // 涨跌家数（用沪市数据）
+  const uEl=document.getElementById('m_up'),dEl=document.getElementById('m_dn');
+  if(uEl)uEl.textContent=data.up>0?data.up+'家':'--';
+  if(dEl)dEl.textContent=data.down>0?data.down+'家':'--';
+  // 成交额
+  const aEl=document.getElementById('m_amt');
+  if(aEl)aEl.textContent=formatAmt(data.totalAmt);
+}
+
 const S={scan:0,alerts:[],mined:[],prev:{}};
 
 async function scan(){
   S.scan++;const el=document.getElementById('sc'),st=document.getElementById('st'),si=document.getElementById('si');
   el.textContent='第'+S.scan+'轮 · '+new Date().toLocaleTimeString('zh-CN',{timeZone:'Asia/Shanghai',hour12:false});
   st.textContent='⏳ 扫描中...';st.className='status';
+  
+  // === 第0步：并行获取大盘行情（不阻塞概念扫描）===
+  const marketPromise=fetchMarketOverview();
   
   // === 第1步：扫描所有概念板块，收集所有个股 ===
   si.textContent='扫描板块...';
@@ -2682,6 +2776,10 @@ async function scan(){
   }
   renderMining();
   
+  // === 第8步：渲染大盘行情概览 ===
+  const marketData=await marketPromise;
+  if(marketData)renderMarketOverview(marketData);
+  
   const trading=isTrading();
   st.textContent=trading?'● 交易中':'○ 盘后';
   st.className='status '+(trading?'live':'dead');
@@ -2804,6 +2902,8 @@ document.addEventListener('DOMContentLoaded',()=>{
       st.className='status dead';
       si.textContent='等待开盘 · 交易日9:00-11:30,13:00-15:00';
       // 盘后保留最后一次扫描结果不消失
+      // 盘后渲染上次大盘数据
+      if(lastMarketData)renderMarketOverview(lastMarketData);
     }
   }
   st.textContent='⏳ 首次扫描...';doScan();setInterval(doScan,30000);
