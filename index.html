@@ -11,9 +11,9 @@
 :root{--bg:#0f1117;--bg2:#1a1d27;--card:#212433;--hover:#2a2d3a;--border:#2e3140;--t:#e8eaed;--t2:#9aa0a6;--t3:#6b7280;--r:#ef4444;--o:#f59e0b;--g:#22c55e;--b:#3b82f6;--p:#8b5cf6;--c:#06b6d4}
 *{margin:0;padding:0;box-sizing:border-box}
 body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif;background:var(--bg);color:var(--t);height:100vh;display:flex;flex-direction:column;overflow:hidden}
-#bar{display:flex;align-items:center;padding:10px 20px;background:var(--bg2);border-bottom:1px solid var(--border);gap:16px;flex-shrink:0}
-.logo{font-size:17px;font-weight:700}.status{font-size:12px;color:var(--t3)}.status.live{color:var(--g)}.status.dead{color:var(--r)}
-#marketBar{display:flex;align-items:center;gap:14px;flex:1;overflow-x:auto;padding:0 4px}.mi{display:flex;align-items:center;gap:4px;white-space:nowrap}.mil{font-size:10px;color:var(--t3)}.miv{font-size:13px;font-weight:700;color:var(--t)}.mip{font-size:11px;font-weight:600}.mip.up{color:var(--r)}.mip.down{color:var(--g)}.mip.flat{color:var(--t3)}.ms{padding:2px 8px;background:rgba(255,255,255,.04);border-radius:6px}
+#bar{display:flex;align-items:center;padding:14px 20px;background:var(--bg2);border-bottom:1px solid var(--border);gap:20px;flex-shrink:0}
+.logo{font-size:18px;font-weight:700}.status{font-size:13px;color:var(--t3)}.status.live{color:var(--g)}.status.dead{color:var(--r)}
+#marketBar{display:flex;align-items:center;gap:18px;flex:1;overflow-x:auto;padding:0 6px}.mi{display:flex;align-items:center;gap:5px;white-space:nowrap}.mil{font-size:11px;color:var(--t3)}.miv{font-size:15px;font-weight:700;color:var(--t)}.mip{font-size:13px;font-weight:600}.mip.up{color:var(--r)}.mip.down{color:var(--g)}.mip.flat{color:var(--t3)}.ms{padding:3px 10px;background:rgba(255,255,255,.04);border-radius:6px}
 #main{display:flex;flex:1;overflow:hidden;gap:1px;background:var(--border)}
 #left{width:340px;min-width:340px;background:var(--bg2);display:flex;flex-direction:column}
 #mid{flex:1;background:var(--bg2);display:flex;flex-direction:column}
@@ -44,7 +44,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei
 </style>
 </head>
 <body>
-<div id="bar"><div class="logo">🔥 A股概念异动监控</div><span id="st" class="status">⏳ 加载中...</span><div id="marketBar"><span class="mi"><span class="mil">上证</span><span id="m_sh" class="miv">--</span><span id="m_sh_pct" class="mip">--</span></span><span class="mi"><span class="mil">深证</span><span id="m_sz" class="miv">--</span><span id="m_sz_pct" class="mip">--</span></span><span class="mi"><span class="mil">创业板</span><span id="m_cy" class="miv">--</span><span id="m_cy_pct" class="mip">--</span></span><span class="mi ms"><span class="mil">上涨</span><span id="m_up" class="miv" style="color:#ef4444">--</span></span><span class="mi ms"><span class="mil">下跌</span><span id="m_dn" class="miv" style="color:#22c55e">--</span></span><span class="mi ms"><span class="mil">成交</span><span id="m_amt" class="miv" style="color:#e8eaed">--</span></span></div><span style="font-size:11px;color:var(--t3);margin-left:auto" id="sc">就绪</span></div>
+<div id="bar"><div class="logo">🔥 A股概念异动监控</div><span id="st" class="status">⏳ 加载中...</span><div id="marketBar"><span class="mi"><span class="mil">上证</span><span id="m_sh" class="miv">--</span><span id="m_sh_pct" class="mip">--</span></span><span class="mi"><span class="mil">深证</span><span id="m_sz" class="miv">--</span><span id="m_sz_pct" class="mip">--</span></span><span class="mi"><span class="mil">创业板</span><span id="m_cy" class="miv">--</span><span id="m_cy_pct" class="mip">--</span></span><span class="mi ms"><span class="mil">📈涨</span><span id="m_up" class="miv" style="color:#ef4444">--</span></span><span class="mi ms"><span class="mil">📉跌</span><span id="m_dn" class="miv" style="color:#22c55e">--</span></span><span class="mi ms"><span class="mil">📊平</span><span id="m_flat" class="miv" style="color:#9aa0a6">--</span></span><span class="mi ms"><span class="mil">💰成交</span><span id="m_amt" class="miv" style="color:#e8eaed">--</span></span></div><span style="font-size:11px;color:var(--t3);margin-left:auto" id="sc">就绪</span></div>
 <div id="main">
 <div id="left"><div class="ph"><h3>📊 概念异动</h3><span id="ab" class="badge">0</span></div><div id="al" class="scroll"><div class="emp"><div class="ei">👀</div><p>扫描中...</p></div></div></div>
 <div id="mid"><div class="ph"><h3>💎 低位挖掘</h3><span id="mb" class="badge" style="display:none">0</span></div><div id="mr" class="scroll"><div class="emp"><div class="ei">🎯</div><p>异动触发后自动挖掘</p></div></div></div>
@@ -2468,12 +2468,10 @@ async function fetchMarketOverview(){
         down:idx.f105||0,
         flat:idx.f106||0
       };
-      // 使用上证的家数统计（上证涵盖沪市全貌）
-      if(code==='000001'){
-        result.up=idx.f104||0;
-        result.down=idx.f105||0;
-        result.flat=idx.f106||0;
-      }
+      // 累加沪深两市涨跌平家数
+      result.up+=idx.f104||0;
+      result.down+=idx.f105||0;
+      result.flat+=idx.f106||0;
     }
     result.totalAmt=totalAmt;
     lastMarketData=result;
@@ -2506,10 +2504,11 @@ function renderMarketOverview(data){
       pEl.className='mip '+(idx.chPct>0?'up':idx.chPct<0?'down':'flat');
     }
   }
-  // 涨跌家数（用沪市数据）
-  const uEl=document.getElementById('m_up'),dEl=document.getElementById('m_dn');
+  // 涨跌平家数（沪深两市合计）
+  const uEl=document.getElementById('m_up'),dEl=document.getElementById('m_dn'),fEl=document.getElementById('m_flat');
   if(uEl)uEl.textContent=data.up>0?data.up+'家':'--';
   if(dEl)dEl.textContent=data.down>0?data.down+'家':'--';
+  if(fEl)fEl.textContent=data.flat>0?data.flat+'家':'--';
   // 成交额
   const aEl=document.getElementById('m_amt');
   if(aEl)aEl.textContent=formatAmt(data.totalAmt);
