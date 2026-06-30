@@ -41,13 +41,85 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei
 @keyframes ti{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
 #bottom{display:flex;align-items:center;justify-content:space-between;padding:6px 20px;background:var(--bg2);border-top:1px solid var(--border);font-size:11px;color:var(--t3);flex-shrink:0}
 @media(max-width:1100px){#main{flex-direction:column}#left,#mid{width:100%;min-width:100%;max-height:50vh}}
+
+/* ===== 大盘指数详情 ===== */
+.idx-card{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:12px;margin-bottom:8px}
+.idx-card .idx-name{font-size:12px;color:var(--t3);margin-bottom:4px}
+.idx-card .idx-price{font-size:20px;font-weight:700;color:var(--t);margin-bottom:2px}
+.idx-card .idx-pct{font-size:14px;font-weight:600}
+.idx-card .idx-pct.up{color:var(--r)}.idx-card .idx-pct.down{color:var(--g)}.idx-card .idx-pct.flat{color:var(--t3)}
+.idx-card .idx-chart{font-size:11px;color:var(--t3);margin-top:4px}
+
+/* 涨跌分布 */
+.dist-bar{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:12px;margin-top:8px}
+.dist-title{font-size:13px;font-weight:600;color:var(--t);margin-bottom:8px}
+.dist-row{display:flex;justify-content:space-between;align-items:center;padding:4px 0;font-size:12px}
+.dist-row b{font-weight:700;margin-left:4px}
+.dist-up{color:var(--r)}.dist-down{color:var(--g)}.dist-flat{color:var(--t3)}
+
+/* ===== 热点追踪 ===== */
+.hot-section{margin-bottom:12px}
+.hot-title{font-size:13px;font-weight:600;color:var(--t);padding:8px 12px;background:var(--card);border:1px solid var(--border);border-radius:8px 8px 0 0;border-bottom:none}
+.hot-item{display:flex;align-items:center;justify-content:space-between;padding:8px 12px;background:var(--card);border:1px solid var(--border);border-top:none;font-size:12px}
+.hot-item:last-child{border-radius:0 0 8px 8px}
+.hot-item .hot-name{color:var(--t);font-weight:600}
+.hot-item .hot-pct{font-weight:700}
+.hot-item .hot-pct.up{color:var(--r)}.hot-item .hot-pct.down{color:var(--g)}
+.hot-item .hot-lead{color:var(--t3);font-size:11px}
+
+/* 涨停个股 */
+.stock-item{display:flex;align-items:center;justify-content:space-between;padding:8px 12px;background:var(--card);border:1px solid var(--border);border-top:none;font-size:12px}
+.stock-item:last-child{border-radius:0 0 8px 8px}
+.stock-item .stock-info{display:flex;align-items:center;gap:8px}
+.stock-item .stock-name{color:var(--t);font-weight:600}
+.stock-item .stock-code{color:var(--t3);font-size:11px}
+.stock-item .stock-pct{font-weight:700;color:var(--r)}
 </style>
 </head>
 <body>
 <div id="bar"><div class="logo">🔥 A股概念异动监控</div><span id="st" class="status">⏳ 加载中...</span><div id="marketBar"><span class="mi"><span class="mil">上证</span><span id="m_sh" class="miv">--</span><span id="m_sh_pct" class="mip">--</span></span><span class="mi"><span class="mil">深证</span><span id="m_sz" class="miv">--</span><span id="m_sz_pct" class="mip">--</span></span><span class="mi"><span class="mil">创业板</span><span id="m_cy" class="miv">--</span><span id="m_cy_pct" class="mip">--</span></span><span class="mi ms"><span class="mil">📈涨</span><span id="m_up" class="miv" style="color:#ef4444">--</span></span><span class="mi ms"><span class="mil">📉跌</span><span id="m_dn" class="miv" style="color:#22c55e">--</span></span><span class="mi ms"><span class="mil">📊平</span><span id="m_flat" class="miv" style="color:#9aa0a6">--</span></span><span class="mi ms"><span class="mil">💰成交</span><span id="m_amt" class="miv" style="color:#e8eaed">--</span></span></div><span style="font-size:11px;color:var(--t3);margin-left:auto" id="sc">就绪</span></div>
 <div id="main">
-<div id="left"><div class="ph"><h3>📊 概念异动</h3><span id="ab" class="badge">0</span></div><div id="al" class="scroll"><div class="emp"><div class="ei">👀</div><p>扫描中...</p></div></div></div>
-<div id="mid"><div class="ph"><h3>💎 低位挖掘</h3><span id="mb" class="badge" style="display:none">0</span></div><div id="mr" class="scroll"><div class="emp"><div class="ei">🎯</div><p>异动触发后自动挖掘</p></div></div></div>
+<!-- 左侧：大盘指数详情 -->
+<div id="left">
+  <div class="ph"><h3>📈 大盘指数</h3></div>
+  <div id="al" class="scroll">
+    <div id="indexDetail">
+      <!-- 三大指数卡片 -->
+      <div class="idx-card" id="idx-sh"><div class="idx-name">上证指数</div><div class="idx-price">--</div><div class="idx-pct">--</div><div class="idx-chart">开:-- 高:-- 低:--</div></div>
+      <div class="idx-card" id="idx-sz"><div class="idx-name">深证成指</div><div class="idx-price">--</div><div class="idx-pct">--</div><div class="idx-chart">开:-- 高:-- 低:--</div></div>
+      <div class="idx-card" id="idx-cy"><div class="idx-name">创业板指</div><div class="idx-price">--</div><div class="idx-pct">--</div><div class="idx-chart">开:-- 高:-- 低:--</div></div>
+      <!-- 涨跌分布 -->
+      <div class="dist-bar">
+        <div class="dist-title">涨跌分布</div>
+        <div class="dist-row"><span class="dist-up">📈 涨停 <b id="dist-limit-up">--</b></span><span class="dist-down">📉 跌停 <b id="dist-limit-dn">--</b></span></div>
+        <div class="dist-row"><span class="dist-up">涨>7% <b id="dist-up7">--</b></span><span class="dist-down">跌>7% <b id="dist-dn7">--</b></span></div>
+        <div class="dist-row"><span class="dist-up">涨5-7% <b id="dist-up5">--</b></span><span class="dist-down">跌5-7% <b id="dist-dn5">--</b></span></div>
+        <div class="dist-row"><span class="dist-up">涨3-5% <b id="dist-up3">--</b></span><span class="dist-down">跌3-5% <b id="dist-dn3">--</b></span></div>
+        <div class="dist-row"><span class="dist-up">涨0-3% <b id="dist-up0">--</b></span><span class="dist-down">跌0-3% <b id="dist-dn0">--</b></span></div>
+        <div class="dist-row"><span class="dist-flat">平盘 <b id="dist-flat">--</b></span></div>
+      </div>
+    </div>
+    <!-- 概念异动列表保留在下方 -->
+    <div class="ph" style="margin-top:12px;border-top:1px solid var(--border)"><h3>📊 概念异动</h3><span id="ab" class="badge">0</span></div>
+    <div id="alerts-list"></div>
+  </div>
+</div>
+<!-- 右侧：热点追踪 -->
+<div id="mid">
+  <div class="ph"><h3>🔥 热点追踪</h3></div>
+  <div id="mr" class="scroll">
+    <!-- 概念板块涨幅排行 -->
+    <div class="hot-section">
+      <div class="hot-title">📊 概念板块涨幅排行</div>
+      <div id="hot-boards"></div>
+    </div>
+    <!-- 涨停个股 -->
+    <div class="hot-section">
+      <div class="hot-title">📈 涨停个股</div>
+      <div id="hot-stocks"></div>
+    </div>
+  </div>
+</div>
 </div>
 <div id="bottom"><span>数据:东方财富 · 年报/研报/e互动</span><span id="si"></span></div>
 <div id="toast"></div>
@@ -2911,7 +2983,122 @@ function isTrading(){
   return bjDay>=1&&bjDay<=5&&((t>=540&&t<=690)||(t>=780&&t<=900));
 }
 
-function renderAlerts(){const el=document.getElementById('al');document.getElementById('ab').textContent=S.alerts.length;if(!S.alerts.length){el.innerHTML='<div class="emp"><div class="ei">👀</div><p>暂无显著异动</p></div>';return}el.innerHTML=S.alerts.map(a=>{const tops=a.topStocks||[];const cid='mine-'+a.name.replace(/[^a-zA-Z0-9\u4e00-\u9fff]/g,'');return'<div class="acard '+(a.lv==='strong'?'s':a.lv==='medium'?'m':'w')+'" onclick="document.getElementById(&quot;'+cid+'&quot;).scrollIntoView({behavior:&quot;smooth&quot;,block:&quot;start&quot;})"><div class="bn">'+(a.lv==='strong'?'🔴':a.lv==='medium'?'🟡':'🟢')+' '+a.name+'</div><div class="st"><span>涨幅 <span class="sv up">+'+a.change_pct.toFixed(1)+'%</span></span><span>涨停 <span class="sv">'+a.limit_up+'</span>只</span><span>成分 <span class="sv">'+a.total+'</span>只</span><span>得分 <span class="sv">'+a.score+'</span></span></div>'+(a.catalyst?'<div class="reason">'+a.catalyst+'</div>':'')+(tops.length?'<div style="font-size:11px;color:var(--t2);margin-top:6px;line-height:1.6">🔥 领涨：'+tops.map(s=>'<span style="color:'+(s.ch>=9.5?'var(--r)':'var(--t)')+';font-weight:600">'+s.n+'</span><span style="color:'+(s.ch>=0?'var(--r)':'var(--g)')+'">'+(s.ch>=0?'+':'')+s.ch.toFixed(1)+'%</span>').join(' | ')+'</div>':'')+'<div class="ts">'+a.time+'</div></div>'}).join('');}
+function renderAlerts(){const el=document.getElementById('alerts-list');document.getElementById('ab').textContent=S.alerts.length;if(!S.alerts.length){if(el)el.innerHTML='<div class="emp"><div class="ei">👀</div><p>暂无显著异动</p></div>';return}if(el)el.innerHTML=S.alerts.map(a=>{const tops=a.topStocks||[];const cid='mine-'+a.name.replace(/[^a-zA-Z0-9\u4e00-\u9fff]/g,'');return'<div class="acard '+(a.lv==='strong'?'s':a.lv==='medium'?'m':'w')+'" onclick="document.getElementById(&quot;'+cid+'&quot;).scrollIntoView({behavior:&quot;smooth&quot;,block:&quot;start&quot;})"><div class="bn">'+(a.lv==='strong'?'🔴':a.lv==='medium'?'🟡':'🟢')+' '+a.name+'</div><div class="st"><span>涨幅 <span class="sv up">+'+a.change_pct.toFixed(1)+'%</span></span><span>涨停 <span class="sv">'+a.limit_up+'</span>只</span><span>成分 <span class="sv">'+a.total+'</span>只</span><span>得分 <span class="sv">'+a.score+'</span></span></div>'+(a.catalyst?'<div class="reason">'+a.catalyst+'</div>':'')+(tops.length?'<div style="font-size:11px;color:var(--t2);margin-top:6px;line-height:1.6">🔥 领涨：'+tops.map(s=>'<span style="color:'+(s.ch>=9.5?'var(--r)':'var(--t)')+';font-weight:600">'+s.n+'</span><span style="color:'+(s.ch>=0?'var(--r)':'var(--g)')+'">'+(s.ch>=0?'+':'')+s.ch.toFixed(1)+'%</span>').join(' | ')+'</div>':'')+'<div class="ts">'+a.time+'</div></div>'}).join('');}
+
+// ===== 热点数据获取 =====
+async function fetchHotBoards(){
+  try{
+    const u='https://push2.eastmoney.com/api/qt/clist/get?fid=f3&po=1&pz=15&pn=1&np=1&fltt=2&invt=2&fs=m:90+t:3&fields=f2,f3,f4,f12,f14,f128,f140,f141';
+    const r=await fetch(u,{signal:(new AbortController()).signal});
+    if(!r.ok)return null;
+    const d=await r.json();
+    if(!d?.data?.diff)return null;
+    return d.data.diff.map(i=>({name:i.f14,code:i.f12,pct:parseFloat(i.f3||0),lead:i.f128||'-',leadCode:i.f140||''})).filter(x=>x.pct>0);
+  }catch(e){return null}
+}
+
+async function fetchHotStocks(){
+  try{
+    const u='https://push2.eastmoney.com/api/qt/clist/get?fid=f3&po=1&pz=20&pn=1&np=1&fltt=2&invt=2&fs=m:0+t:6,m:0+t:13,m:1+t:2,m:1+t:23&fields=f2,f3,f12,f14';
+    const r=await fetch(u,{signal:(new AbortController()).signal});
+    if(!r.ok)return null;
+    const d=await r.json();
+    if(!d?.data?.diff)return null;
+    return d.data.diff.map(i=>({name:i.f14,code:i.f12,pct:parseFloat(i.f3||0),price:parseFloat(i.f2||0)})).filter(x=>x.pct>=9.5);
+  }catch(e){return null}
+}
+
+async function fetchIndexDetail(){
+  try{
+    const u='https://push2.eastmoney.com/api/qt/ulist.np/get?fltt=2&invt=2&fields=f2,f3,f4,f5,f6,f7,f8,f9,f10,f11,f12,f14,f17,f18,f20,f21,f33,f34,f35,f36,f37,f38,f39,f40,f41,f42,f43,f44,f45,f46,f47,f48,f49,f50,f51,f52,f57,f58,f60,f107,f116,f117,f162,f163,f164,f165,f166,f167,f168,f169,f170,f171,f292&secids=1.000001,0.399001,0.399006';
+    const r=await fetch(u,{signal:(new AbortController()).signal});
+    if(!r.ok)return null;
+    const d=await r.json();
+    if(!d?.data?.diff)return null;
+    const result={};
+    for(const idx of d.data.diff){
+      const code=idx.f12;
+      result[code]={name:idx.f14,price:idx.f2,pct:idx.f3,open:idx.f17,high:idx.f33,low:idx.f34,vol:idx.f47,amt:idx.f48};
+    }
+    return result;
+  }catch(e){return null}
+}
+
+async function fetchMarketDist(){
+  try{
+    const u='https://push2.eastmoney.com/api/qt/stock/get?invt=2&fltt=2&fields=f104,f105,f106,f107,f108,f109,f110,f111,f112,f113,f114,f115,f116,f117,f118,f119,f120,f121,f122,f123,f124,f125,f126,f127,f128,f129,f130,f131,f132,f133,f134,f135,f136,f137,f138,f139,f140,f141,f142,f143,f144,f145,f146,f147,f148,f149,f150,f151,f152,f153,f154,f155,f156,f157,f158,f159,f160,f161,f162,f163,f164,f165,f166,f167,f168,f169,f170,f171,f172,f173,f174,f175,f176,f177,f178,f179,f180,f181,f182,f183,f184,f185,f186,f187,f188,f189,f190,f191,f192,f193,f194,f195,f196,f197,f198,f199,f200&secid=1.000001';
+    const r=await fetch(u,{signal:(new AbortController()).signal});
+    if(!r.ok)return null;
+    const d=await r.json();
+    if(!d?.data)return null;
+    return{
+      limitUp:d.data.f104||0,limitDn:d.data.f105||0,
+      up7:d.data.f106||0,dn7:d.data.f107||0,
+      up5:d.data.f108||0,dn5:d.data.f109||0,
+      up3:d.data.f110||0,dn3:d.data.f111||0,
+      up0:d.data.f112||0,dn0:d.data.f113||0,
+      flat:d.data.f114||0
+    };
+  }catch(e){return null}
+}
+
+function renderIndexDetail(data){
+  if(!data)return;
+  const idxMap={'000001':'sh','399001':'sz','399006':'cy'};
+  for(const[code,prefix]of Object.entries(idxMap)){
+    const idx=data[code];if(!idx)continue;
+    const card=document.getElementById('idx-'+prefix);
+    if(!card)continue;
+    const priceEl=card.querySelector('.idx-price');
+    const pctEl=card.querySelector('.idx-pct');
+    const chartEl=card.querySelector('.idx-chart');
+    if(priceEl)priceEl.textContent=idx.price!=null?idx.price.toFixed(2):'--';
+    if(pctEl){
+      pctEl.textContent=(idx.pct>0?'+':'')+(idx.pct!=null?idx.pct.toFixed(2):'--')+'%';
+      pctEl.className='idx-pct '+(idx.pct>0?'up':idx.pct<0?'down':'flat');
+    }
+    if(chartEl)chartEl.textContent='开:'+(idx.open!=null?idx.open.toFixed(0):'--')+' 高:'+(idx.high!=null?idx.high.toFixed(0):'--')+' 低:'+(idx.low!=null?idx.low.toFixed(0):'--');
+  }
+}
+
+function renderMarketDist(data){
+  if(!data)return;
+  const ids={limitUp:'dist-limit-up',limitDn:'dist-limit-dn',up7:'dist-up7',dn7:'dist-dn7',up5:'dist-up5',dn5:'dist-dn5',up3:'dist-up3',dn3:'dist-dn3',up0:'dist-up0',dn0:'dist-dn0',flat:'dist-flat'};
+  for(const[k,id]of Object.entries(ids)){
+    const el=document.getElementById(id);
+    if(el)el.textContent=data[k]||0;
+  }
+}
+
+function renderHotBoards(data){
+  const el=document.getElementById('hot-boards');
+  if(!el)return;
+  if(!data||!data.length){el.innerHTML='<div class="hot-item" style="border-radius:8px"><span style="color:var(--t3)">暂无数据</span></div>';return}
+  el.innerHTML=data.map(b=>{
+    const pct=b.pct||0;
+    const cls=pct>0?'up':pct<0?'down':'flat';
+    return'<div class="hot-item"><span class="hot-name">'+b.name+'</span><span class="hot-pct '+cls+'">'+(pct>0?'+':'')+pct.toFixed(2)+'%</span></div>';
+  }).join('');
+}
+
+function renderHotStocks(data){
+  const el=document.getElementById('hot-stocks');
+  if(!el)return;
+  if(!data||!data.length){el.innerHTML='<div class="stock-item" style="border-radius:8px"><span style="color:var(--t3)">暂无数据</span></div>';return}
+  el.innerHTML=data.map(s=>{
+    return'<div class="stock-item"><div class="stock-info"><span class="stock-name">'+s.name+'</span><span class="stock-code">'+s.code+'</span></div><span class="stock-pct">+'+s.pct.toFixed(2)+'%</span></div>';
+  }).join('');
+}
+
+async function updateHotData(){
+  const [boards,stocks,indexDetail,marketDist]=await Promise.all([
+    fetchHotBoards(),fetchHotStocks(),fetchIndexDetail(),fetchMarketDist()
+  ]);
+  renderHotBoards(boards);
+  renderHotStocks(stocks);
+  renderIndexDetail(indexDetail);
+  renderMarketDist(marketDist);
+}
 
 function renderCh(ch){if(ch==null)return'<span class="ch" style="color:var(--t3)">--</span>';const cls=ch>0?'up':'down';return'<span class="ch '+cls+'">'+(ch>0?'+':'')+ch.toFixed(1)+'%</span>';}
 function renderMining(){const el=document.getElementById('mr'),bd=document.getElementById('mb');if(!S.mined.length){el.innerHTML='<div class="emp"><div class="ei">🎯</div><p>异动触发后自动挖掘</p></div>';bd.style.display='none';return}bd.style.display='';bd.textContent=S.mined.length;el.innerHTML=S.mined.map(m=>{const tops=m.topStocks||[];const mid='mine-'+m.name.replace(/[^a-zA-Z0-9\u4e00-\u9fff]/g,'');return'<div class="mblock" id="'+mid+'"><div class="bt">💎 '+m.name+' <span style="color:var(--r);font-size:14px">+'+m.change_pct.toFixed(1)+'%</span></div><div class="bm">'+m.time+' | '+m.lv+' | '+m.total+'只成分股 | '+m.limit_up+'只涨停</div>'+(m.catalyst?'<div class="catalyst">'+m.catalyst+'</div>':'')+(tops.length?'<div style="font-size:11px;color:var(--t2);margin-bottom:8px;line-height:1.6">🔥 领涨龙头：'+tops.map(s=>'<span style="color:'+(s.ch>=9.5?'var(--r)':'var(--t)')+';font-weight:600">'+s.n+'</span><span style="color:'+(s.ch>=0?'var(--r)':'var(--g)')+'">'+(s.ch>=0?'+':'')+s.ch.toFixed(1)+'%</span>').join(' | ')+'</div>':'')+(m.keywords?.length?'<div class="ctags">🔥 炒作关键词：'+m.keywords.map(c=>'<span class="ctag">'+c+'</span>').join(' ')+'</div>':'')+'<div class="summary">📌 概念「'+m.name+'」均涨幅+'+m.change_pct.toFixed(1)+'%，'+m.limit_up+'只涨停。挖掘'+m.stocks.length+'只低位纯正标的。</div>'+(m.stocks?.length?'<table class="tbl"><thead><tr><th>股票</th><th>来源</th><th>逻辑</th></tr></thead><tbody>'+m.stocks.map(s=>'<tr><td><span class="sn">'+s.n+'</span><span class="sc">'+s.c+'</span>'+renderCh(s.ch)+'</td><td><span class="stag">'+(s.src||'概念')+'</span></td><td class="lc">'+(s.logic||'-')+'</td></tr>').join('')+'</tbody></table>':'<p style="color:var(--t3);padding:8px">未找到低位标的</p>')+'</div>'}).join('');}
@@ -2923,6 +3110,8 @@ document.addEventListener('DOMContentLoaded',()=>{
   let lastScanData=null; // 保留最后一次扫描结果
   
   async function doScan(){
+    // 并行获取热点数据
+    updateHotData();
     if(isTrading()||isFirstScan){
       try{
         await scan();
