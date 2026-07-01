@@ -102,9 +102,6 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei
     <!-- 概念异动列表保留在下方 -->
     <div class="ph" style="margin-top:12px;border-top:1px solid var(--border)"><h3>📊 概念异动</h3><span id="ab" class="badge">0</span></div>
     <div id="alerts-list"></div>
-    <!-- 低位挖掘 -->
-    <div class="ph" style="margin-top:12px;border-top:1px solid var(--border)"><h3>💎 低位挖掘</h3><span id="mb" class="badge" style="display:none">0</span></div>
-    <div id="mining-list"></div>
   </div>
 </div>
 <!-- 右侧：热点追踪 -->
@@ -113,6 +110,9 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei
   <div id="mr" class="scroll">
     <!-- 热点话题列表 -->
     <div id="hot-topics"></div>
+    <!-- 低位挖掘 -->
+    <div class="ph" style="margin-top:12px;border-top:1px solid var(--border)"><h3>💎 低位挖掘</h3><span id="mb" class="badge" style="display:none">0</span></div>
+    <div id="mining-list"></div>
   </div>
 </div>
 </div>
@@ -3079,12 +3079,15 @@ function renderMining(){const el=document.getElementById('mining-list'),bd=docum
 
 function toast(msg,type){const e=document.createElement('div');e.className='toast '+type;e.textContent=msg;document.getElementById('toast').appendChild(e);setTimeout(()=>e.remove(),5000)}
 document.addEventListener('DOMContentLoaded',()=>{
+  // 立即渲染静态热点话题（不依赖API）
+  renderHotTopics();
+  
   const st=document.getElementById('st'),si=document.getElementById('si');
   let isFirstScan=true;
   let lastScanData=null; // 保留最后一次扫描结果
   
   async function doScan(){
-    // 并行获取热点数据
+    // 并行获取大盘数据
     updateHotData();
     if(isTrading()||isFirstScan){
       try{
