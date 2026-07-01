@@ -57,15 +57,15 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei
 .dist-row b{font-weight:700;margin-left:4px}
 .dist-up{color:var(--r)}.dist-down{color:var(--g)}.dist-flat{color:var(--t3)}
 
-/* ===== 热点追踪 ===== */
-.hot-section{margin-bottom:12px}
-.hot-title{font-size:13px;font-weight:600;color:var(--t);padding:8px 12px;background:var(--card);border:1px solid var(--border);border-radius:8px 8px 0 0;border-bottom:none}
-.hot-item{display:flex;align-items:center;justify-content:space-between;padding:8px 12px;background:var(--card);border:1px solid var(--border);border-top:none;font-size:12px}
-.hot-item:last-child{border-radius:0 0 8px 8px}
-.hot-item .hot-name{color:var(--t);font-weight:600}
-.hot-item .hot-pct{font-weight:700}
-.hot-item .hot-pct.up{color:var(--r)}.hot-item .hot-pct.down{color:var(--g)}
-.hot-item .hot-lead{color:var(--t3);font-size:11px}
+/* ===== 热点话题 ===== */
+.topic-card{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:14px;margin-bottom:10px}
+.topic-card:hover{border-color:var(--b)}
+.topic-card .topic-title{font-size:14px;font-weight:700;color:var(--t);margin-bottom:6px;line-height:1.4}
+.topic-card .topic-summary{font-size:12px;color:var(--t2);line-height:1.6;margin-bottom:8px}
+.topic-card .topic-meta{font-size:10px;color:var(--t3);display:flex;gap:12px;flex-wrap:wrap}
+.topic-card .topic-tag{padding:2px 8px;background:rgba(139,92,246,.15);color:var(--p);border-radius:8px;font-size:10px;font-weight:600}
+.topic-card .topic-hot{color:var(--r);font-weight:600}
+.topic-card .topic-source{color:var(--c)}
 
 /* 涨停个股 */
 .stock-item{display:flex;align-items:center;justify-content:space-between;padding:8px 12px;background:var(--card);border:1px solid var(--border);border-top:none;font-size:12px}
@@ -106,18 +106,10 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei
 </div>
 <!-- 右侧：热点追踪 -->
 <div id="mid">
-  <div class="ph"><h3>🔥 热点追踪</h3></div>
+  <div class="ph"><h3>🔥 全球热点话题</h3></div>
   <div id="mr" class="scroll">
-    <!-- 概念板块涨幅排行 -->
-    <div class="hot-section">
-      <div class="hot-title">📊 概念板块涨幅排行</div>
-      <div id="hot-boards"></div>
-    </div>
-    <!-- 涨停个股 -->
-    <div class="hot-section">
-      <div class="hot-title">📈 涨停个股</div>
-      <div id="hot-stocks"></div>
-    </div>
+    <!-- 热点话题列表 -->
+    <div id="hot-topics"></div>
   </div>
 </div>
 </div>
@@ -2986,29 +2978,31 @@ function isTrading(){
 function renderAlerts(){const el=document.getElementById('alerts-list');document.getElementById('ab').textContent=S.alerts.length;if(!S.alerts.length){if(el)el.innerHTML='<div class="emp"><div class="ei">👀</div><p>暂无显著异动</p></div>';return}if(el)el.innerHTML=S.alerts.map(a=>{const tops=a.topStocks||[];const cid='mine-'+a.name.replace(/[^a-zA-Z0-9\u4e00-\u9fff]/g,'');return'<div class="acard '+(a.lv==='strong'?'s':a.lv==='medium'?'m':'w')+'" onclick="document.getElementById(&quot;'+cid+'&quot;).scrollIntoView({behavior:&quot;smooth&quot;,block:&quot;start&quot;})"><div class="bn">'+(a.lv==='strong'?'🔴':a.lv==='medium'?'🟡':'🟢')+' '+a.name+'</div><div class="st"><span>涨幅 <span class="sv up">+'+a.change_pct.toFixed(1)+'%</span></span><span>涨停 <span class="sv">'+a.limit_up+'</span>只</span><span>成分 <span class="sv">'+a.total+'</span>只</span><span>得分 <span class="sv">'+a.score+'</span></span></div>'+(a.catalyst?'<div class="reason">'+a.catalyst+'</div>':'')+(tops.length?'<div style="font-size:11px;color:var(--t2);margin-top:6px;line-height:1.6">🔥 领涨：'+tops.map(s=>'<span style="color:'+(s.ch>=9.5?'var(--r)':'var(--t)')+';font-weight:600">'+s.n+'</span><span style="color:'+(s.ch>=0?'var(--r)':'var(--g)')+'">'+(s.ch>=0?'+':'')+s.ch.toFixed(1)+'%</span>').join(' | ')+'</div>':'')+'<div class="ts">'+a.time+'</div></div>'}).join('');}
 
 // ===== 热点数据获取 =====
-async function fetchHotBoards(){
-  try{
-    const u='https://push2.eastmoney.com/api/qt/clist/get?fid=f3&po=1&pz=15&pn=1&np=1&fltt=2&invt=2&fs=m:90+t:3&fields=f2,f3,f4,f12,f14,f128,f140,f141';
-    const r=await fetch(u,{signal:(new AbortController()).signal});
-    if(!r.ok)return null;
-    const d=await r.json();
-    if(!d?.data?.diff)return null;
-    return d.data.diff.map(i=>({name:i.f14,code:i.f12,pct:parseFloat(i.f3||0),lead:i.f128||'-',leadCode:i.f140||''})).filter(x=>x.pct>0);
-  }catch(e){return null}
+// ===== 全球热点话题数据 =====
+const HOT_TOPICS=[
+  {title:'🔴 AI基建周期长达数十年',summary:'英伟达黄仁勋年度股东大会称"有用的AI时代"已至，AI基础设施进入生产阶段，本轮建设将以数十年计，或成人类史上最大基建。三大瓶颈持续：CPU需求激增、存储芯片紧缺、光通信加速换代。',tags:['AI算力','英伟达','存储芯片','CPO'],hot:'🔥 最热',source:'东财/雪球热议'},
+  {title:'🔴 存储芯片涨价超级周期',summary:'DRAM/NAND价格持续上涨，HBM3E量价齐升。韩国三星电机签订AI服务器MLCC年度供货大单4539.5亿韩元。MLCC缺货潮全面扩散：AI服务器拉动高端MLCC用量翻3-5倍，高端缺货低端缺产能，国产替代窗口打开。',tags:['存储芯片','MLCC','HBM','涨价周期'],hot:'🔥 最热',source:'东方财富热榜'},
+  {title:'🟡 半导体材料集体涨价',summary:'靶材涨价60-70%、六氟化钨(WF₆)涨70-90%、ArF光刻胶价格翻番、12寸大硅片缺口85%+缺货至2028年。有研新材、彤程新材、雅克科技等上游材料股持续走强。国家大基金三期重点扶持半导体设备材料环节。',tags:['半导体材料','靶材','光刻胶','电子特气'],hot:'📈 热议',source:'东财/雪球热议'},
+  {title:'🟡 先进封装+CPO双主线',summary:'长电科技5天3板、太极实业连续走强。先进封装行业订单爆满，部分企业排至2027年。CPO作为高速光互联核心技术，1.6T光模块迭代升级，AI算力资本开支持续扩张。CoWoS产能翻倍+台积电3D SoIC量产。',tags:['先进封装','CPO','长电科技','HBM'],hot:'📈 热议',source:'东方财富热榜'},
+  {title:'🟡 美股七巨头单月蒸发2.3万亿美元',summary:'6月美股Magnificent Seven市值合计蒸发超2.3万亿美元，跌幅达10%，创逾一年来最差月度表现。资金从多元化大型龙头轮动至纯半导体赛道。费城半导体指数获提振。',tags:['美股','七巨头','半导体','资金轮动'],hot:'📈 热议',source:'新浪财经'},
+  {title:'🟢 新能源电池双赛道崛起',summary:'多氟多稳居东财人气榜首位，固态电池+钠离子电池双赛道布局。传统锂电增速放缓，钠电池低成本切入储能/低速车，固态电池量产预期升温。HJT电池技术迭代，光伏电池赛道持续活跃。',tags:['固态电池','钠电池','光伏','新能源'],hot:'💬 关注',source:'东方财富热榜'},
+  {title:'🟢 光学光电+新型显示全面回暖',summary:'3D摄像头板块+8.02%领涨全市场，MiniLED/MicroLED/柔性屏集体爆发。京东方A作为全球显示龙头，受益于行业周期反转+高端技术突破，总市值2886亿。凯盛科技首板涨停开启补涨行情。',tags:['MiniLED','光学光电','京东方','消费电子'],hot:'💬 关注',source:'东方财富概念板块'},
+  {title:'🟢 人形机器人量产元年临近',summary:'特斯拉Optimus V3确定2026年7-8月量产，单机成本降至4.9万美元。绿的谐波(减速器)+15.6%领涨机器人板块。工信部/国资委联合发布具身智能专项行动。十五五高端制造扶持政策即将落地。',tags:['人形机器人','特斯拉','绿的谐波','具身智能'],hot:'💬 关注',source:'雪球/财联社'},
+  {title:'🟢 创新药逆势大涨+机构称分化藏机会',summary:'摩根资产管理表示AI板块吸走流动性致优质医药股承压，中国制药全球竞争力持续提升，海外先进生物制药向中国产业链转移趋势不可逆。创新药IND数量创新高，GLP-1/ADC赛道重磅临床数据读出。',tags:['创新药','GLP-1','ADC','CXO'],hot:'💬 关注',source:'东方财富话题'},
+  {title:'⚪ 伊朗暂停伊美谈判+韩国股市熔断',summary:'伊朗代表团暂停与美国的核谈判，地缘风险升温。韩国KOSPI指数暴跌触发熔断，亚太股市集体承压。黄金跌破4000美元/盎司后震荡。下半年A股关注中报业绩窗口+科技主线分化。',tags:['地缘风险','韩国熔断','黄金','中报'],hot:'🌐 全球',source:'东方财富/财联社'},
+  {title:'⚪ "老登股"PK"小登股"：下半年谁更强',summary:'上半年AI算力/半导体/机器人等"小登股"狂飙突进，白酒/地产/煤炭等"老登股"维持低位。172万人热议下半年风格切换可能。部分基金经理认为科技行情中期延续但需关注中报验证。',tags:['风格切换','科技成长','价值股','下半年'],hot:'🌐 宏观',source:'东方财富话题(172万浏览)'},
+];
+
+function renderHotTopics(){
+  const el=document.getElementById('hot-topics');
+  if(!el)return;
+  el.innerHTML=HOT_TOPICS.map(t=>{
+    const tags=t.tags.map(tag=>'<span class="topic-tag">'+tag+'</span>').join('');
+    return'<div class="topic-card"><div class="topic-title">'+t.title+'</div><div class="topic-summary">'+t.summary+'</div><div style="display:flex;align-items:center;justify-content:space-between"><div style="display:flex;gap:6px;flex-wrap:wrap">'+tags+'</div><div class="topic-meta"><span class="topic-hot">'+t.hot+'</span><span class="topic-source">'+t.source+'</span></div></div></div>';
+  }).join('');
 }
 
-async function fetchHotStocks(){
-  try{
-    const u='https://push2.eastmoney.com/api/qt/clist/get?fid=f3&po=1&pz=20&pn=1&np=1&fltt=2&invt=2&fs=m:0+t:6,m:0+t:13,m:1+t:2,m:1+t:23&fields=f2,f3,f12,f14';
-    const r=await fetch(u,{signal:(new AbortController()).signal});
-    if(!r.ok)return null;
-    const d=await r.json();
-    if(!d?.data?.diff)return null;
-    return d.data.diff.map(i=>({name:i.f14,code:i.f12,pct:parseFloat(i.f3||0),price:parseFloat(i.f2||0)})).filter(x=>x.pct>=9.5);
-  }catch(e){return null}
-}
-
-async function fetchIndexDetail(){
+function renderIndexDetail(data){
   try{
     const u='https://push2.eastmoney.com/api/qt/ulist.np/get?fltt=2&invt=2&fields=f2,f3,f4,f5,f6,f7,f8,f9,f10,f11,f12,f14,f17,f18,f20,f21,f33,f34,f35,f36,f37,f38,f39,f40,f41,f42,f43,f44,f45,f46,f47,f48,f49,f50,f51,f52,f57,f58,f60,f107,f116,f117,f162,f163,f164,f165,f166,f167,f168,f169,f170,f171,f292&secids=1.000001,0.399001,0.399006';
     const r=await fetch(u,{signal:(new AbortController()).signal});
@@ -3070,32 +3064,9 @@ function renderMarketDist(data){
   }
 }
 
-function renderHotBoards(data){
-  const el=document.getElementById('hot-boards');
-  if(!el)return;
-  if(!data||!data.length){el.innerHTML='<div class="hot-item" style="border-radius:8px"><span style="color:var(--t3)">暂无数据</span></div>';return}
-  el.innerHTML=data.map(b=>{
-    const pct=b.pct||0;
-    const cls=pct>0?'up':pct<0?'down':'flat';
-    return'<div class="hot-item"><span class="hot-name">'+b.name+'</span><span class="hot-pct '+cls+'">'+(pct>0?'+':'')+pct.toFixed(2)+'%</span></div>';
-  }).join('');
-}
-
-function renderHotStocks(data){
-  const el=document.getElementById('hot-stocks');
-  if(!el)return;
-  if(!data||!data.length){el.innerHTML='<div class="stock-item" style="border-radius:8px"><span style="color:var(--t3)">暂无数据</span></div>';return}
-  el.innerHTML=data.map(s=>{
-    return'<div class="stock-item"><div class="stock-info"><span class="stock-name">'+s.name+'</span><span class="stock-code">'+s.code+'</span></div><span class="stock-pct">+'+s.pct.toFixed(2)+'%</span></div>';
-  }).join('');
-}
-
 async function updateHotData(){
-  const [boards,stocks,indexDetail,marketDist]=await Promise.all([
-    fetchHotBoards(),fetchHotStocks(),fetchIndexDetail(),fetchMarketDist()
-  ]);
-  renderHotBoards(boards);
-  renderHotStocks(stocks);
+  renderHotTopics();
+  const [indexDetail,marketDist]=await Promise.all([fetchIndexDetail(),fetchMarketDist()]);
   renderIndexDetail(indexDetail);
   renderMarketDist(marketDist);
 }
