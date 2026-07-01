@@ -2575,10 +2575,12 @@ async function fetchMarketOverview(){
         down:idx.f105||0,
         flat:idx.f106||0
       };
-      // 累加沪深两市涨跌平家数
-      result.up+=idx.f104||0;
-      result.down+=idx.f105||0;
-      result.flat+=idx.f106||0;
+      // 只累加上证(沪市)和深证(深市)的家数，创业板是深市子集不重复加
+      if(code==='000001'||code==='399001'){
+        result.up+=idx.f104||0;
+        result.down+=idx.f105||0;
+        result.flat+=idx.f106||0;
+      }
     }
     result.totalAmt=totalAmt;
     lastMarketData=result;
