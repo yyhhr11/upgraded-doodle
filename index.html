@@ -89,15 +89,14 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei
       <div class="idx-card" id="idx-sh"><div class="idx-name">上证指数</div><div class="idx-price">--</div><div class="idx-pct">--</div><div class="idx-chart">开:-- 高:-- 低:--</div></div>
       <div class="idx-card" id="idx-sz"><div class="idx-name">深证成指</div><div class="idx-price">--</div><div class="idx-pct">--</div><div class="idx-chart">开:-- 高:-- 低:--</div></div>
       <div class="idx-card" id="idx-cy"><div class="idx-name">创业板指</div><div class="idx-price">--</div><div class="idx-pct">--</div><div class="idx-chart">开:-- 高:-- 低:--</div></div>
-      <!-- 涨跌分布 -->
+      <!-- 市场概况 -->
       <div class="dist-bar">
-        <div class="dist-title">涨跌分布</div>
-        <div class="dist-row"><span class="dist-up">📈 涨停 <b id="dist-limit-up">--</b></span><span class="dist-down">📉 跌停 <b id="dist-limit-dn">--</b></span></div>
-        <div class="dist-row"><span class="dist-up">涨>7% <b id="dist-up7">--</b></span><span class="dist-down">跌>7% <b id="dist-dn7">--</b></span></div>
-        <div class="dist-row"><span class="dist-up">涨5-7% <b id="dist-up5">--</b></span><span class="dist-down">跌5-7% <b id="dist-dn5">--</b></span></div>
-        <div class="dist-row"><span class="dist-up">涨3-5% <b id="dist-up3">--</b></span><span class="dist-down">跌3-5% <b id="dist-dn3">--</b></span></div>
-        <div class="dist-row"><span class="dist-up">涨0-3% <b id="dist-up0">--</b></span><span class="dist-down">跌0-3% <b id="dist-dn0">--</b></span></div>
-        <div class="dist-row"><span class="dist-flat">平盘 <b id="dist-flat">--</b></span></div>
+        <div class="dist-title">沪深市场概况</div>
+        <div class="dist-row"><span class="dist-up">📈 上涨 <b id="dist-up-total">--</b></span><span class="dist-down">📉 下跌 <b id="dist-dn-total">--</b></span></div>
+        <div class="dist-row"><span class="dist-flat">📊 平盘 <b id="dist-flat-total">--</b></span><span class="dist-flat">涨停 <b id="dist-limit-up">--</b></span></div>
+        <div class="dist-row" style="margin-top:6px;padding-top:6px;border-top:1px solid var(--border)"><span class="dist-up">沪市 涨<b id="dist-sh-up">--</b> 跌<b id="dist-sh-dn">--</b></span></div>
+        <div class="dist-row"><span class="dist-up">深市 涨<b id="dist-sz-up">--</b> 跌<b id="dist-sz-dn">--</b></span></div>
+        <div class="dist-row"><span class="dist-flat">合计 涨<b id="dist-total-up">--</b> 跌<b id="dist-total-dn">--</b> 平<b id="dist-total-flat">--</b></span></div>
       </div>
     </div>
     <!-- 概念异动列表保留在下方 -->
@@ -2892,7 +2891,7 @@ async function scan(){
   
   // === 第8步：渲染大盘行情概览 ===
   const marketData=await marketPromise;
-  if(marketData)renderMarketOverview(marketData);
+  if(marketData){renderMarketOverview(marketData);renderMarketDist(marketData);}
   
   const trading=isTrading();
   st.textContent=trading?'● 交易中':'○ 盘后';
@@ -3024,24 +3023,6 @@ async function fetchIndexDetail(){
   }catch(e){return null}
 }
 
-async function fetchMarketDist(){
-  try{
-    const u='https://push2.eastmoney.com/api/qt/stock/get?invt=2&fltt=2&fields=f104,f105,f106,f107,f108,f109,f110,f111,f112,f113,f114,f115,f116,f117,f118,f119,f120,f121,f122,f123,f124,f125,f126,f127,f128,f129,f130,f131,f132,f133,f134,f135,f136,f137,f138,f139,f140,f141,f142,f143,f144,f145,f146,f147,f148,f149,f150,f151,f152,f153,f154,f155,f156,f157,f158,f159,f160,f161,f162,f163,f164,f165,f166,f167,f168,f169,f170,f171,f172,f173,f174,f175,f176,f177,f178,f179,f180,f181,f182,f183,f184,f185,f186,f187,f188,f189,f190,f191,f192,f193,f194,f195,f196,f197,f198,f199,f200&secid=1.000001';
-    const r=await fetch(u,{signal:(new AbortController()).signal});
-    if(!r.ok)return null;
-    const d=await r.json();
-    if(!d?.data)return null;
-    return{
-      limitUp:d.data.f104||0,limitDn:d.data.f105||0,
-      up7:d.data.f106||0,dn7:d.data.f107||0,
-      up5:d.data.f108||0,dn5:d.data.f109||0,
-      up3:d.data.f110||0,dn3:d.data.f111||0,
-      up0:d.data.f112||0,dn0:d.data.f113||0,
-      flat:d.data.f114||0
-    };
-  }catch(e){return null}
-}
-
 function renderIndexDetail(data){
   if(!data)return;
   const idxMap={'000001':'sh','399001':'sz','399006':'cy'};
@@ -3062,19 +3043,34 @@ function renderIndexDetail(data){
 }
 
 function renderMarketDist(data){
-  if(!data)return;
-  const ids={limitUp:'dist-limit-up',limitDn:'dist-limit-dn',up7:'dist-up7',dn7:'dist-dn7',up5:'dist-up5',dn5:'dist-dn5',up3:'dist-up3',dn3:'dist-dn3',up0:'dist-up0',dn0:'dist-dn0',flat:'dist-flat'};
-  for(const[k,id]of Object.entries(ids)){
-    const el=document.getElementById(id);
-    if(el)el.textContent=data[k]||0;
+  if(!data||!data.indices)return;
+  const sh=data.indices['000001'];
+  const sz=data.indices['399001'];
+  // 沪市
+  if(sh){
+    document.getElementById('dist-sh-up')&&(document.getElementById('dist-sh-up').textContent=sh.up||0);
+    document.getElementById('dist-sh-dn')&&(document.getElementById('dist-sh-dn').textContent=sh.down||0);
   }
+  // 深市
+  if(sz){
+    document.getElementById('dist-sz-up')&&(document.getElementById('dist-sz-up').textContent=sz.up||0);
+    document.getElementById('dist-sz-dn')&&(document.getElementById('dist-sz-dn').textContent=sz.down||0);
+  }
+  // 合计
+  document.getElementById('dist-total-up')&&(document.getElementById('dist-total-up').textContent=data.up||0);
+  document.getElementById('dist-total-dn')&&(document.getElementById('dist-total-dn').textContent=data.down||0);
+  document.getElementById('dist-total-flat')&&(document.getElementById('dist-total-flat').textContent=data.flat||0);
+  document.getElementById('dist-up-total')&&(document.getElementById('dist-up-total').textContent=data.up||0);
+  document.getElementById('dist-dn-total')&&(document.getElementById('dist-dn-total').textContent=data.down||0);
+  document.getElementById('dist-flat-total')&&(document.getElementById('dist-flat-total').textContent=data.flat||0);
 }
 
 async function updateHotData(){
   renderHotTopics();
-  const [indexDetail,marketDist]=await Promise.all([fetchIndexDetail(),fetchMarketDist()]);
+  const indexDetail=await fetchIndexDetail();
   renderIndexDetail(indexDetail);
-  renderMarketDist(marketDist);
+  // 从已有的 marketOverview 数据渲染市场概况
+  if(lastMarketData)renderMarketDist(lastMarketData);
 }
 
 function renderCh(ch){if(ch==null)return'<span class="ch" style="color:var(--t3)">--</span>';const cls=ch>0?'up':'down';return'<span class="ch '+cls+'">'+(ch>0?'+':'')+ch.toFixed(1)+'%</span>';}
