@@ -3035,8 +3035,7 @@ function renderHotTopics(){
   const topics=HOT_TOPICS; // 严格12条
   el.innerHTML=topics.map((t,i)=>{
     const tags=t.tags.map(tag=>'<span class="topic-tag">'+tag+'</span>').join('');
-    const id='tp-'+i;
-    return'<div class="topic-card" id="'+id+'"><div class="topic-title" onclick="var s=document.getElementById(\''+id+'\');s.classList.toggle(\'expanded\')" style="cursor:pointer">'+t.title+'</div><div class="topic-summary">'+t.summary+'</div><div class="topic-tags">'+tags+'</div><div class="topic-meta"><span class="topic-hot">'+t.hot+'</span><span class="topic-source">'+t.source+'</span><span class="topic-time">'+t.time+'</span></div></div>';
+    return'<div class="topic-card"><div class="topic-title" onclick="this.parentElement.classList.toggle(\'expanded\')" style="cursor:pointer">'+t.title+'</div><div class="topic-summary">'+t.summary+'</div><div class="topic-tags">'+tags+'</div><div class="topic-meta"><span class="topic-hot">'+t.hot+'</span><span class="topic-source">'+t.source+'</span><span class="topic-time">'+t.time+'</span></div></div>';
   }).join('');
 }
 
