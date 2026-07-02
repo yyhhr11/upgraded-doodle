@@ -2667,7 +2667,7 @@ async function scan(){
   
   for(const br of boardResults){
     for(const s of br.cons){
-      if(s.ch<3||seen.has(s.c)||/^[89]/.test(s.c))continue;
+      if(s.ch<6||seen.has(s.c)||/^[89]/.test(s.c))continue;
       seen.add(s.c);
       
       // 获取该股的所有概念标签（一对多）
@@ -2750,7 +2750,7 @@ async function scan(){
   // === 第3步：聚合概念，计算均涨幅 ===
   const valid=[];
   for(const[cn,cd]of Object.entries(conceptMap)){
-    if(cd.stocks.length<2)continue; // 至少2只大涨股才构成概念
+    if(cd.stocks.length<3)continue; // 至少3只大涨股才构成概念
     cd.change_pct=cd.change_sum/cd.stocks.length;
     cd.total=cd.stocks.length;
     valid.push(cd);
@@ -2762,8 +2762,8 @@ async function scan(){
     if(existingConcept)continue;
     const qs=await fetchStockQuote(nd.stocks);
     if(!qs||!qs.length)continue;
-    const risingStocks=qs.filter(s=>s.ch>3);
-    if(risingStocks.length<2)continue;
+    const risingStocks=qs.filter(s=>s.ch>=6);
+    if(risingStocks.length<3)continue;
     const avg=risingStocks.reduce((s,x)=>s+x.ch,0)/risingStocks.length;
     const lups=risingStocks.filter(x=>x.ch>=9.5).length;
     valid.push({code:nc,name:nc,change_pct:avg,limit_up:lups,total:risingStocks.length,stocks:risingStocks,catalyst:nd.catalyst});
