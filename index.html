@@ -60,15 +60,16 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei
 .dist-up{color:var(--r)}.dist-down{color:var(--g)}.dist-flat{color:var(--t3)}
 
 /* ===== 热点话题 ===== */
-.topic-card{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:14px;margin-bottom:10px}
+.topic-card{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:10px 12px;margin-bottom:8px}
 .topic-card:hover{border-color:var(--b)}
-.topic-card .topic-title{font-size:14px;font-weight:700;color:var(--t);margin-bottom:6px;line-height:1.4}
-.topic-card .topic-summary{font-size:12px;color:var(--t2);line-height:1.6;margin-bottom:8px}
-.topic-card .topic-meta{font-size:10px;color:var(--t3);display:flex;gap:12px;flex-wrap:wrap}
-.topic-card .topic-tag{padding:2px 8px;background:rgba(139,92,246,.15);color:var(--p);border-radius:8px;font-size:10px;font-weight:600}
-.topic-card .topic-hot{color:var(--r);font-weight:600}
-.topic-card .topic-source{color:var(--c)}
-.topic-card .topic-time{color:var(--t3);font-size:10px}
+.topic-card .topic-title{font-size:13px;font-weight:700;color:var(--t);margin-bottom:4px;line-height:1.35}
+.topic-card .topic-summary{font-size:11px;color:var(--t2);line-height:1.55;margin-bottom:6px;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+.topic-card .topic-meta{font-size:10px;color:var(--t3);display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.topic-card .topic-tags{display:flex;gap:5px;flex-wrap:wrap;margin-bottom:6px}
+.topic-card .topic-tag{padding:1px 6px;background:rgba(139,92,246,.12);color:var(--p);border-radius:6px;font-size:10px;font-weight:600}
+.topic-card .topic-hot{color:var(--r);font-weight:600;font-size:10px;white-space:nowrap}
+.topic-card .topic-source{color:var(--c);font-size:10px;white-space:nowrap}
+.topic-card .topic-time{color:var(--t3);font-size:10px;white-space:nowrap}
 
 /* ===== 连续三天异动概念 ===== */
 .trend-card{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:12px;margin-bottom:10px;cursor:pointer}
@@ -3028,7 +3029,7 @@ function renderHotTopics(){
   if(!el)return;
   el.innerHTML=HOT_TOPICS.map(t=>{
     const tags=t.tags.map(tag=>'<span class="topic-tag">'+tag+'</span>').join('');
-    return'<div class="topic-card"><div class="topic-title">'+t.title+'</div><div class="topic-summary">'+t.summary+'</div><div style="display:flex;align-items:center;justify-content:space-between"><div style="display:flex;gap:6px;flex-wrap:wrap">'+tags+'</div><div class="topic-meta"><span class="topic-hot">'+t.hot+'</span><span class="topic-source">'+t.source+'</span><span class="topic-time">'+t.time+'</span></div></div></div>';
+    return'<div class="topic-card"><div class="topic-title">'+t.title+'</div><div class="topic-summary">'+t.summary+'</div><div class="topic-tags">'+tags+'</div><div class="topic-meta"><span class="topic-hot">'+t.hot+'</span><span class="topic-source">'+t.source+'</span><span class="topic-time">'+t.time+'</span></div></div>';
   }).join('');
 }
 
