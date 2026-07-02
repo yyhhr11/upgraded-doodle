@@ -70,6 +70,18 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei
 .topic-card .topic-source{color:var(--c)}
 .topic-card .topic-time{color:var(--t3);font-size:10px}
 
+/* ===== 连续三天异动概念 ===== */
+.trend-card{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:12px;margin-bottom:10px;cursor:pointer}
+.trend-card:hover{border-color:var(--b)}
+.trend-card .trend-name{font-size:14px;font-weight:700;color:var(--t);margin-bottom:4px;display:flex;align-items:center;gap:8px}
+.trend-card .trend-name .fire{color:var(--r);font-size:12px}
+.trend-card .trend-data{font-size:11px;color:var(--t2);line-height:1.6;margin-bottom:6px}
+.trend-card .trend-data b{color:var(--t);font-weight:600}
+.trend-card .trend-days{display:flex;gap:6px;flex-wrap:wrap}
+.trend-card .day-tag{font-size:10px;padding:2px 8px;border-radius:6px;background:rgba(245,158,11,.15);color:var(--o);font-weight:600}
+.trend-card .day-tag.up{background:rgba(239,68,68,.15);color:var(--r)}
+.trend-card .day-tag.down{background:rgba(34,197,94,.15);color:var(--g)}
+
 /* 涨停个股 */
 .stock-item{display:flex;align-items:center;justify-content:space-between;padding:8px 12px;background:var(--card);border:1px solid var(--border);border-top:none;font-size:12px}
 .stock-item:last-child{border-radius:0 0 8px 8px}
@@ -111,6 +123,9 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei
 <div id="mid">
   <div class="ph"><h3>🔥 全球热点话题</h3></div>
   <div id="mr" class="scroll">
+    <!-- 连续三天异动概念 -->
+    <div class="ph" style="border-bottom:1px solid var(--border)"><h3>📈 连续三天异动</h3><span id="tb" class="badge" style="display:none">0</span></div>
+    <div id="trend-list"></div>
     <!-- 热点话题列表 -->
     <div id="hot-topics"></div>
     <!-- 低位挖掘 -->
@@ -2896,6 +2911,10 @@ async function scan(){
   const marketData=await marketPromise;
   if(marketData){renderMarketOverview(marketData);renderMarketDist(marketData);}
   
+  // === 第8.5步：保存当日异动概念数据（用于连续三天异动分析）===
+  saveDailyAlerts(alerts);
+  renderTrendConcepts();
+  
   const trading=isTrading();
   st.textContent=trading?'● 交易中':'○ 盘后';
   st.className='status '+(trading?'live':'dead');
@@ -3008,6 +3027,72 @@ function renderHotTopics(){
   el.innerHTML=HOT_TOPICS.map(t=>{
     const tags=t.tags.map(tag=>'<span class="topic-tag">'+tag+'</span>').join('');
     return'<div class="topic-card"><div class="topic-title">'+t.title+'</div><div class="topic-summary">'+t.summary+'</div><div style="display:flex;align-items:center;justify-content:space-between"><div style="display:flex;gap:6px;flex-wrap:wrap">'+tags+'</div><div class="topic-meta"><span class="topic-hot">'+t.hot+'</span><span class="topic-source">'+t.source+'</span><span class="topic-time">'+t.time+'</span></div></div></div>';
+  }).join('');
+}
+
+// ===== 连续三天异动概念 =====
+function saveDailyAlerts(alerts){
+  const today=new Date().toISOString().slice(0,10);
+  let history=[];
+  try{const raw=localStorage.getItem('alerts_history');if(raw)history=JSON.parse(raw);}catch(e){}
+  // 去重：如果今天已保存则覆盖
+  history=history.filter(h=>h.date!==today);
+  // 只保留最近7天数据
+  const cutoff=new Date();cutoff.setDate(cutoff.getDate()-7);
+  history=history.filter(h=>new Date(h.date)>=cutoff);
+  // 保存今日数据
+  history.push({
+    date:today,
+    concepts:alerts.map(a=>({name:a.name,change_pct:a.change_pct,limit_up:a.limit_up,total:a.total}))
+  });
+  try{localStorage.setItem('alerts_history',JSON.stringify(history));}catch(e){}
+}
+
+function renderTrendConcepts(){
+  const el=document.getElementById('trend-list');
+  const badge=document.getElementById('tb');
+  if(!el)return;
+  let history=[];
+  try{const raw=localStorage.getItem('alerts_history');if(raw)history=JSON.parse(raw);}catch(e){}
+  if(history.length<3){
+    el.innerHTML='<div class="emp" style="padding:20px 0"><div class="ei" style="font-size:32px">📊</div><p style="font-size:12px">连续扫描3天后显示<br>连续三天异动概念</p></div>';
+    if(badge)badge.style.display='none';
+    return;
+  }
+  // 取最近3天（按日期排序）
+  history.sort((a,b)=>new Date(a.date)-new Date(b.date));
+  const last3=history.slice(-3);
+  const d1=last3[0],d2=last3[1],d3=last3[2];
+  // 找出三天都出现的概念
+  const names1=new Set(d1.concepts.map(c=>c.name));
+  const names2=new Set(d2.concepts.map(c=>c.name));
+  const names3=new Set(d3.concepts.map(c=>c.name));
+  const common=[...names1].filter(n=>names2.has(n)&&names3.has(n));
+  if(!common.length){
+    el.innerHTML='<div class="emp" style="padding:20px 0"><div class="ei" style="font-size:32px">📭</div><p style="font-size:12px">暂无连续三天异动的概念</p></div>';
+    if(badge)badge.style.display='none';
+    return;
+  }
+  // 计算每个概念的三天均值
+  const trends=common.map(name=>{
+    const c1=d1.concepts.find(c=>c.name===name);
+    const c2=d2.concepts.find(c=>c.name===name);
+    const c3=d3.concepts.find(c=>c.name===name);
+    const avg=(c1.change_pct+c2.change_pct+c3.change_pct)/3;
+    return{name,avg,day1:c1.change_pct,day2:c2.change_pct,day3:c3.change_pct,limit1:c1.limit_up,limit2:c2.limit_up,limit3:c3.limit_up};
+  });
+  // 按三天均值降序
+  trends.sort((a,b)=>b.avg-a.avg);
+  if(badge){badge.style.display='';badge.textContent=trends.length;}
+  const date1=d1.date.slice(5),date2=d2.date.slice(5),date3=d3.date.slice(5);
+  el.innerHTML=trends.map(t=>{
+    const d1cls=t.day1>0?'up':'down';
+    const d2cls=t.day2>0?'up':'down';
+    const d3cls=t.day3>0?'up':'down';
+    const d1sign=t.day1>0?'+':'';
+    const d2sign=t.day2>0?'+':'';
+    const d3sign=t.day3>0?'+':'';
+    return '<div class="trend-card"><div class="trend-name">'+t.name+'<span class="fire">🔥</span></div><div class="trend-data">三天均涨幅 <b style="color:var(--r)">+'+t.avg.toFixed(1)+'%</b> · 涨停 '+t.limit1+'+'+t.limit2+'+'+t.limit3+'只</div><div class="trend-days"><span class="day-tag '+d1cls+'">'+date1+' '+d1sign+t.day1.toFixed(1)+'%</span><span class="day-tag '+d2cls+'">'+date2+' '+d2sign+t.day2.toFixed(1)+'%</span><span class="day-tag '+d3cls+'">'+date3+' '+d3sign+t.day3.toFixed(1)+'%</span></div></div>';
   }).join('');
 }
 
