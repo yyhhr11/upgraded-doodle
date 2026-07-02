@@ -113,6 +113,11 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei
         <div class="dist-row"><span class="dist-up">深市 涨<b id="dist-sz-up">--</b> 跌<b id="dist-sz-dn">--</b></span></div>
         <div class="dist-row"><span class="dist-flat">合计 涨<b id="dist-total-up">--</b> 跌<b id="dist-total-dn">--</b> 平<b id="dist-total-flat">--</b></span></div>
       </div>
+      <!-- 连续三天异动（紧凑版） -->
+      <div class="dist-bar" style="margin-top:8px">
+        <div class="dist-title">📈 连续三天异动</div>
+        <div id="trend-list" style="font-size:11px"></div>
+      </div>
     </div>
     <!-- 概念异动列表保留在下方 -->
     <div class="ph" style="margin-top:12px;border-top:1px solid var(--border)"><h3>📊 概念异动</h3><span id="ab" class="badge">0</span></div>
@@ -123,9 +128,6 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei
 <div id="mid">
   <div class="ph"><h3>🔥 全球热点话题</h3></div>
   <div id="mr" class="scroll">
-    <!-- 连续三天异动概念 -->
-    <div class="ph" style="border-bottom:1px solid var(--border)"><h3>📈 连续三天异动</h3><span id="tb" class="badge" style="display:none">0</span></div>
-    <div id="trend-list"></div>
     <!-- 热点话题列表 -->
     <div id="hot-topics"></div>
     <!-- 低位挖掘 -->
@@ -3050,13 +3052,11 @@ function saveDailyAlerts(alerts){
 
 function renderTrendConcepts(){
   const el=document.getElementById('trend-list');
-  const badge=document.getElementById('tb');
   if(!el)return;
   let history=[];
   try{const raw=localStorage.getItem('alerts_history');if(raw)history=JSON.parse(raw);}catch(e){}
   if(history.length<3){
-    el.innerHTML='<div class="emp" style="padding:20px 0"><div class="ei" style="font-size:32px">📊</div><p style="font-size:12px">连续扫描3天后显示<br>连续三天异动概念</p></div>';
-    if(badge)badge.style.display='none';
+    el.innerHTML='<div style="padding:8px 0;color:var(--t3);font-size:11px;text-align:center">连续扫描3天后显示</div>';
     return;
   }
   // 取最近3天（按日期排序）
@@ -3069,8 +3069,7 @@ function renderTrendConcepts(){
   const names3=new Set(d3.concepts.map(c=>c.name));
   const common=[...names1].filter(n=>names2.has(n)&&names3.has(n));
   if(!common.length){
-    el.innerHTML='<div class="emp" style="padding:20px 0"><div class="ei" style="font-size:32px">📭</div><p style="font-size:12px">暂无连续三天异动的概念</p></div>';
-    if(badge)badge.style.display='none';
+    el.innerHTML='<div style="padding:8px 0;color:var(--t3);font-size:11px;text-align:center">暂无连续三天异动</div>';
     return;
   }
   // 计算每个概念的三天均值
@@ -3079,20 +3078,15 @@ function renderTrendConcepts(){
     const c2=d2.concepts.find(c=>c.name===name);
     const c3=d3.concepts.find(c=>c.name===name);
     const avg=(c1.change_pct+c2.change_pct+c3.change_pct)/3;
-    return{name,avg,day1:c1.change_pct,day2:c2.change_pct,day3:c3.change_pct,limit1:c1.limit_up,limit2:c2.limit_up,limit3:c3.limit_up};
+    return{name,avg,day1:c1.change_pct,day2:c2.change_pct,day3:c3.change_pct};
   });
   // 按三天均值降序
   trends.sort((a,b)=>b.avg-a.avg);
-  if(badge){badge.style.display='';badge.textContent=trends.length;}
-  const date1=d1.date.slice(5),date2=d2.date.slice(5),date3=d3.date.slice(5);
+  // 紧凑列表渲染
   el.innerHTML=trends.map(t=>{
-    const d1cls=t.day1>0?'up':'down';
-    const d2cls=t.day2>0?'up':'down';
-    const d3cls=t.day3>0?'up':'down';
-    const d1sign=t.day1>0?'+':'';
-    const d2sign=t.day2>0?'+':'';
-    const d3sign=t.day3>0?'+':'';
-    return '<div class="trend-card"><div class="trend-name">'+t.name+'<span class="fire">🔥</span></div><div class="trend-data">三天均涨幅 <b style="color:var(--r)">+'+t.avg.toFixed(1)+'%</b> · 涨停 '+t.limit1+'+'+t.limit2+'+'+t.limit3+'只</div><div class="trend-days"><span class="day-tag '+d1cls+'">'+date1+' '+d1sign+t.day1.toFixed(1)+'%</span><span class="day-tag '+d2cls+'">'+date2+' '+d2sign+t.day2.toFixed(1)+'%</span><span class="day-tag '+d3cls+'">'+date3+' '+d3sign+t.day3.toFixed(1)+'%</span></div></div>';
+    const cls=t.avg>0?'up':'down';
+    const sign=t.avg>0?'+':'';
+    return '<div style="display:flex;justify-content:space-between;align-items:center;padding:5px 0;border-bottom:1px solid rgba(255,255,255,.04);font-size:12px"><span style="font-weight:600;color:var(--t)">'+t.name+'</span><span style="color:var(--'+cls+')">'+sign+t.avg.toFixed(1)+'%</span></div>';
   }).join('');
 }
 
