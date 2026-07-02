@@ -2781,6 +2781,11 @@ async function scan(){
     }
   }
   
+  // === 第4.6步：过滤大涨个股<5只的概念，不挖掘 ===
+  for(let i=valid.length-1;i>=0;i--){
+    if(valid[i].limit_up<5){valid.splice(i,1);}
+  }
+  
   // === 第5步：去重分组 ===
   const GROUPS={
     '🤖物理AI':['物理AI'],
