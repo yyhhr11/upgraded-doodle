@@ -61,10 +61,12 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei
 
 /* ===== 热点话题 ===== */
 #hot-topics{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;padding:8px}
-.topic-card{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:10px 12px;margin-bottom:0}
+.topic-card{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:10px 12px;margin-bottom:0;transition:all .2s}
 .topic-card:hover{border-color:var(--b)}
-.topic-card .topic-title{font-size:12px;font-weight:700;color:var(--t);margin-bottom:4px;line-height:1.35}
-.topic-card .topic-summary{font-size:10px;color:var(--t2);line-height:1.5;margin-bottom:6px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.topic-card .topic-title{font-size:12px;font-weight:700;color:var(--t);margin-bottom:4px;line-height:1.35;user-select:none}
+.topic-card .topic-title:hover{color:var(--b)}
+.topic-card .topic-summary{font-size:10px;color:var(--t2);line-height:1.5;margin-bottom:6px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;transition:all .3s}
+.topic-card.expanded .topic-summary{-webkit-line-clamp:unset;display:block;overflow:visible}
 .topic-card .topic-meta{font-size:9px;color:var(--t3);display:flex;gap:6px;flex-wrap:wrap;align-items:center}
 .topic-card .topic-tags{display:flex;gap:4px;flex-wrap:wrap;margin-bottom:5px}
 .topic-card .topic-tag{padding:1px 5px;background:rgba(139,92,246,.12);color:var(--p);border-radius:5px;font-size:9px;font-weight:600}
@@ -3028,9 +3030,11 @@ const HOT_TOPICS=[
 function renderHotTopics(){
   const el=document.getElementById('hot-topics');
   if(!el)return;
-  el.innerHTML=HOT_TOPICS.map(t=>{
+  const topics=HOT_TOPICS.slice(0,12);
+  el.innerHTML=topics.map((t,i)=>{
     const tags=t.tags.map(tag=>'<span class="topic-tag">'+tag+'</span>').join('');
-    return'<div class="topic-card"><div class="topic-title">'+t.title+'</div><div class="topic-summary">'+t.summary+'</div><div class="topic-tags">'+tags+'</div><div class="topic-meta"><span class="topic-hot">'+t.hot+'</span><span class="topic-source">'+t.source+'</span><span class="topic-time">'+t.time+'</span></div></div>';
+    const id='tp-'+i;
+    return'<div class="topic-card" id="'+id+'"><div class="topic-title" onclick="var s=document.getElementById(\''+id+'\');s.classList.toggle(\'expanded\')" style="cursor:pointer">'+t.title+'</div><div class="topic-summary">'+t.summary+'</div><div class="topic-tags">'+tags+'</div><div class="topic-meta"><span class="topic-hot">'+t.hot+'</span><span class="topic-source">'+t.source+'</span><span class="topic-time">'+t.time+'</span></div></div>';
   }).join('');
 }
 
