@@ -49,6 +49,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei
 .idx-card .idx-pct{font-size:14px;font-weight:600}
 .idx-card .idx-pct.up{color:var(--r)}.idx-card .idx-pct.down{color:var(--g)}.idx-card .idx-pct.flat{color:var(--t3)}
 .idx-card .idx-chart{font-size:11px;color:var(--t3);margin-top:4px}
+.idx-card .idx-vol{font-size:11px;color:var(--t3);margin-top:2px}.idx-vol-cmp{font-weight:600}.idx-vol-cmp.up{color:var(--r)}.idx-vol-cmp.down{color:var(--g)}
 
 /* 涨跌分布 */
 .dist-bar{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:12px;margin-top:8px}
@@ -86,9 +87,9 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei
   <div id="al" class="scroll">
     <div id="indexDetail">
       <!-- 三大指数卡片 -->
-      <div class="idx-card" id="idx-sh"><div class="idx-name">上证指数</div><div class="idx-price">--</div><div class="idx-pct">--</div><div class="idx-chart">开:-- 高:-- 低:--</div></div>
-      <div class="idx-card" id="idx-sz"><div class="idx-name">深证成指</div><div class="idx-price">--</div><div class="idx-pct">--</div><div class="idx-chart">开:-- 高:-- 低:--</div></div>
-      <div class="idx-card" id="idx-cy"><div class="idx-name">创业板指</div><div class="idx-price">--</div><div class="idx-pct">--</div><div class="idx-chart">开:-- 高:-- 低:--</div></div>
+      <div class="idx-card" id="idx-sh"><div class="idx-name">上证指数</div><div class="idx-price">--</div><div class="idx-pct">--</div><div class="idx-chart">开:-- 高:-- 低:--</div><div class="idx-vol">成交:-- <span class="idx-vol-cmp"></span></div></div>
+      <div class="idx-card" id="idx-sz"><div class="idx-name">深证成指</div><div class="idx-price">--</div><div class="idx-pct">--</div><div class="idx-chart">开:-- 高:-- 低:--</div><div class="idx-vol">成交:-- <span class="idx-vol-cmp"></span></div></div>
+      <div class="idx-card" id="idx-cy"><div class="idx-name">创业板指</div><div class="idx-price">--</div><div class="idx-pct">--</div><div class="idx-chart">开:-- 高:-- 低:--</div><div class="idx-vol">成交:-- <span class="idx-vol-cmp"></span></div></div>
       <!-- 市场概况 -->
       <div class="dist-bar">
         <div class="dist-title">沪深市场概况</div>
@@ -3010,7 +3011,8 @@ function renderHotTopics(){
 
 async function fetchIndexDetail(){
   try{
-    const u='https://push2.eastmoney.com/api/qt/ulist.np/get?fltt=2&invt=2&fields=f2,f3,f4,f5,f6,f7,f8,f9,f10,f11,f12,f14,f17,f18,f20,f21,f33,f34,f35,f36,f37,f38,f39,f40,f41,f42,f43,f44,f45,f46,f47,f48,f49,f50,f51,f52,f57,f58,f60,f107,f116,f117,f162,f163,f164,f165,f166,f167,f168,f169,f170,f171,f292&secids=1.000001,0.399001,0.399006';
+    // f2=最新价 f3=涨跌幅 f5=成交量(手) f6=成交额 f12=代码 f14=名称 f15=最高 f16=最低 f17=开盘 f18=昨收
+    const u='https://push2.eastmoney.com/api/qt/ulist.np/get?fltt=2&invt=2&fields=f2,f3,f5,f6,f12,f14,f15,f16,f17,f18&secids=1.000001,0.399001,0.399006';
     const r=await fetch(u,{signal:(new AbortController()).signal});
     if(!r.ok)return null;
     const d=await r.json();
@@ -3018,7 +3020,7 @@ async function fetchIndexDetail(){
     const result={};
     for(const idx of d.data.diff){
       const code=idx.f12;
-      result[code]={name:idx.f14,price:idx.f2,pct:idx.f3,open:idx.f17,high:idx.f33,low:idx.f34,vol:idx.f47,amt:idx.f48};
+      result[code]={name:idx.f14,price:idx.f2,pct:idx.f3,open:idx.f17,high:idx.f15,low:idx.f16,vol:idx.f5,amt:idx.f6,preClose:idx.f18};
     }
     return result;
   }catch(e){return null}
@@ -3027,6 +3029,12 @@ async function fetchIndexDetail(){
 function renderIndexDetail(data){
   if(!data)return;
   const idxMap={'000001':'sh','399001':'sz','399006':'cy'};
+  const today= new Date().toISOString().slice(0,10); // YYYY-MM-DD
+  // 读取昨日缓存
+  let cache={};
+  try{const raw=localStorage.getItem('idx_vol_cache');if(raw)cache=JSON.parse(raw);}catch(e){}
+  const newCache={date:today,data:{}};
+  
   for(const[code,prefix]of Object.entries(idxMap)){
     const idx=data[code];if(!idx)continue;
     const card=document.getElementById('idx-'+prefix);
@@ -3034,12 +3042,37 @@ function renderIndexDetail(data){
     const priceEl=card.querySelector('.idx-price');
     const pctEl=card.querySelector('.idx-pct');
     const chartEl=card.querySelector('.idx-chart');
+    const volEl=card.querySelector('.idx-vol');
+    
     if(priceEl)priceEl.textContent=idx.price!=null?idx.price.toFixed(2):'--';
     if(pctEl){
       pctEl.textContent=(idx.pct>0?'+':'')+(idx.pct!=null?idx.pct.toFixed(2):'--')+'%';
       pctEl.className='idx-pct '+(idx.pct>0?'up':idx.pct<0?'down':'flat');
     }
     if(chartEl)chartEl.textContent='开:'+(idx.open!=null?idx.open.toFixed(0):'--')+' 高:'+(idx.high!=null?idx.high.toFixed(0):'--')+' 低:'+(idx.low!=null?idx.low.toFixed(0):'--');
+    
+    // 成交量格式化 + 同比
+    let volStr='--', cmpHtml='';
+    if(idx.vol!=null && idx.vol>0){
+      volStr=idx.vol>=1e8?(idx.vol/1e8).toFixed(2)+'亿手':(idx.vol/1e4).toFixed(0)+'万手';
+      // 缓存今日成交量
+      newCache.data[code]=idx.vol;
+      // 同比昨日
+      if(cache.date && cache.data && cache.data[code] && cache.date!==today){
+        const prevVol=cache.data[code];
+        if(prevVol>0){
+          const ratio=((idx.vol-prevVol)/prevVol*100);
+          const cls=ratio>0?'up':'down';
+          const sign=ratio>0?'+':'';
+          cmpHtml=' <span class="idx-vol-cmp '+cls+'">'+sign+ratio.toFixed(1)+'%</span>';
+        }
+      }
+    }
+    if(volEl)volEl.innerHTML='成交:'+volStr+cmpHtml;
+  }
+  // 保存缓存（只保留今日数据）
+  if(Object.keys(newCache.data).length>0){
+    try{localStorage.setItem('idx_vol_cache',JSON.stringify(newCache));}catch(e){}
   }
 }
 
