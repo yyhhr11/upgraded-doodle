@@ -2773,6 +2773,7 @@ async function scan(){
         }
       }
       if(!tags||!tags.length)continue; // 无法归类，跳过
+      stockTags[s.c]={name:s.n,ch:s.ch,tags:tags,amt:s.amt};
       
       // 每个标签计数+1
       for(const t of tags){
