@@ -2924,17 +2924,26 @@ async function scan(){
     valid.push(cd);
   }
   
-  // === 第4步：补充新概念（东方财富没有的7个概念）===
+  // === 第4步：补充新概念（东方财富没有的/BOARDS数据不全的概念）===
   for(const[nc,nd]of Object.entries(NEW_CONCEPTS)){
     const existingConcept=valid.find(v=>v.name===nc);
-    if(existingConcept)continue;
+    // 只有当BOARDS已产生的概念且大涨股≥3只时才跳过
+    if(existingConcept&&existingConcept.stocks.length>=3)continue;
     const qs=await fetchStockQuote(nd.stocks);
     if(!qs||!qs.length)continue;
     const risingStocks=qs.filter(s=>s.ch>=6);
     if(risingStocks.length<3)continue;
     const avg=risingStocks.reduce((s,x)=>s+x.ch,0)/risingStocks.length;
     const lups=risingStocks.filter(x=>x.ch>=9.5).length;
-    valid.push({code:nc,name:nc,change_pct:avg,limit_up:lups,total:risingStocks.length,stocks:risingStocks,catalyst:nd.catalyst});
+    // 如果BOARDS已有该概念但不够3只，用NEW_CONCEPTS数据替换
+    if(existingConcept){
+      existingConcept.stocks=risingStocks;
+      existingConcept.change_pct=avg;
+      existingConcept.limit_up=lups;
+      existingConcept.total=risingStocks.length;
+    }else{
+      valid.push({code:nc,name:nc,change_pct:avg,limit_up:lups,total:risingStocks.length,stocks:risingStocks,catalyst:nd.catalyst});
+    }
   }
   
   valid.sort((a,b)=>b.change_pct-a.change_pct);
