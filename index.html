@@ -130,6 +130,9 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei
     <!-- 概念异动列表保留在下方 -->
     <div class="ph" style="margin-top:12px;border-top:1px solid var(--border)"><h3>📊 概念异动</h3><span id="ab" class="badge">0</span></div>
     <div id="alerts-list"></div>
+    <!-- 独立大涨股 -->
+    <div class="ph" style="margin-top:12px;border-top:1px solid var(--border)"><h3>📌 独立大涨股</h3><span id="ob" class="badge" style="background:var(--o);display:none">0</span></div>
+    <div id="orphans-list"></div>
   </div>
 </div>
 <!-- 右侧：热点追踪 -->
@@ -2744,7 +2747,7 @@ function renderMarketOverview(data){
   if(aEl)aEl.textContent=formatAmt(data.totalAmt);
 }
 
-const S={scan:0,alerts:[],mined:[],prev:{}};
+const S={scan:0,alerts:[],mined:[],prev:{},orphans:[]};
 
 async function scan(){
   S.scan++;const el=document.getElementById('sc'),st=document.getElementById('st'),si=document.getElementById('si');
@@ -2783,11 +2786,13 @@ async function scan(){
   const stockTags={}; // {code: [tag1, tag2, ...]}  每只大涨股的所有可能概念
   const tagCount={};  // {tag: count}  每个标签下的大涨股数量
   const seen=new Set();
+  const allRising={}; // 所有大涨股详情(包括未归类的)，用于后续独立大涨股展示
   
   for(const br of boardResults){
     for(const s of br.cons){
       if(s.ch<6||seen.has(s.c)||/^[89]/.test(s.c))continue;
       seen.add(s.c);
+      allRising[s.c]={c:s.c,n:s.n,ch:s.ch,amt:s.amt};
       
       // 获取该股的所有概念标签（一对多）
       let tags=STOCK_CONCEPT_TAGS[s.c];
@@ -3031,6 +3036,17 @@ async function scan(){
   saveDailyAlerts(alerts);
   renderTrendConcepts();
   
+  // === 第8.6步：收集独立大涨股（涨幅≥6%但未被任何概念收录的个股）===
+  const conceptStocks=new Set();
+  for(const a of alerts){for(const s of a.stocks||[]){conceptStocks.add(s.c);}}
+  const orphans=[];
+  for(const[code,s]of Object.entries(allRising)){
+    if(!conceptStocks.has(code))orphans.push(s);
+  }
+  orphans.sort((a,b)=>b.ch-a.ch);
+  S.orphans=orphans;
+  renderOrphans();
+  
   const trading=isTrading();
   st.textContent=trading?'● 交易中':'○ 盘后';
   st.className='status '+(trading?'live':'dead');
@@ -3204,6 +3220,22 @@ function renderTrendConcepts(){
     const cls=t.avg>0?'up':'down';
     const sign=t.avg>0?'+':'';
     return '<div style="display:flex;justify-content:space-between;align-items:center;padding:5px 0;border-bottom:1px solid rgba(255,255,255,.04);font-size:12px"><span style="font-weight:600;color:var(--t)">'+t.name+'</span><span style="color:var(--'+cls+')">'+sign+t.avg.toFixed(1)+'%</span></div>';
+  }).join('');
+}
+
+function renderOrphans(){
+  const el=document.getElementById('orphans-list'),bd=document.getElementById('ob');
+  if(!el)return;
+  if(!S.orphans.length){
+    el.innerHTML='<div style="padding:8px 0;color:var(--t3);font-size:11px;text-align:center">所有大涨股均已归入异动概念</div>';
+    if(bd)bd.style.display='none';
+    return;
+  }
+  if(bd){bd.style.display='';bd.textContent=S.orphans.length;}
+  el.innerHTML=S.orphans.map(s=>{
+    const cls=s.ch>0?'up':'down';
+    const sign=s.ch>0?'+':'';
+    return '<div style="display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid rgba(255,255,255,.04);font-size:12px"><span style="font-weight:600;color:var(--t)">'+s.n+'</span><span style="font-size:11px;color:var(--t3)">'+s.c+'</span><span style="color:var(--'+cls+');font-weight:600">'+sign+s.ch.toFixed(1)+'%</span></div>';
   }).join('');
 }
 
