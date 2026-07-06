@@ -2680,12 +2680,15 @@ function getKeywords(name){
 function getCatalyst(name){for(const[k,v]of Object.entries(CATALYSTS)){if(name.includes(k))return v}return'📰 催化：市场资金聚焦+板块轮动+技术面突破';}
 
 // ===== API =====
-async function fetchBoard(code){const u='https://push2.eastmoney.com/api/qt/clist/get?fid=f3&po=1&pz=200&pn=1&np=1&fltt=2&invt=2&fs=b:'+code+'&fields=f2,f3,f8,f12,f14';try{const ctrl=new AbortController();const t=setTimeout(()=>ctrl.abort(),5000);const r=await fetch(u,{signal:ctrl.signal});clearTimeout(t);if(!r.ok)return null;const d=await r.json();if(d?.data?.diff)return d.data.diff.map(i=>({c:i.f12,n:i.f14,p:parseFloat(i.f2||0),ch:parseFloat(i.f3||0),amt:parseFloat(i.f8||0)}))}catch(e){return null}return null;}
+async function fetchBoard(code){const u='https://push2.eastmoney.com/api/qt/clist/get?fid=f3&po=1&pz=200&pn=1&np=1&fltt=2&invt=2&fs=b:'+code+'&fields=f2,f3,f8,f12,f14';for(let retry=0;retry<2;retry++){try{const ctrl=new AbortController();const t=setTimeout(()=>ctrl.abort(),12000);const r=await fetch(u,{signal:ctrl.signal});clearTimeout(t);if(!r.ok){if(retry<1)continue;return null}const d=await r.json();if(d?.data?.diff)return d.data.diff.map(i=>({c:i.f12,n:i.f14,p:parseFloat(i.f2||0),ch:parseFloat(i.f3||0),amt:parseFloat(i.f8||0)}))}catch(e){if(retry<1)continue;return null}}return null;}
 
 async function fetchStockQuote(codes){
   const secids=codes.map(c=>(c.startsWith('6')?'1.'+c:'0.'+c)).join(',');
   const u='https://push2.eastmoney.com/api/qt/ulist.np/get?fltt=2&invt=2&fields=f2,f3,f12,f14&secids='+secids;
-  try{const r=await fetch(u,{mode:'cors'});if(!r.ok)return[];const d=await r.json();if(d?.data?.diff)return d.data.diff.map(i=>({c:i.f12,n:i.f14,p:parseFloat(i.f2||0),ch:parseFloat(i.f3||0)}));}catch(e){}return[];
+  for(let retry=0;retry<2;retry++){
+    try{const ctrl=new AbortController();const t=setTimeout(()=>ctrl.abort(),12000);const r=await fetch(u,{signal:ctrl.signal});clearTimeout(t);if(!r.ok){if(retry<1)continue;return[]}const d=await r.json();if(d?.data?.diff)return d.data.diff.map(i=>({c:i.f12,n:i.f14,p:parseFloat(i.f2||0),ch:parseFloat(i.f3||0)}))}catch(e){if(retry<1)continue}
+  }
+  return[];
 }
 
 // ===== 大盘行情概览 =====
