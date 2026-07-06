@@ -2930,20 +2930,32 @@ async function scan(){
   // === 第4步：补充新概念（东方财富没有的/BOARDS数据不全的概念）===
   for(const[nc,nd]of Object.entries(NEW_CONCEPTS)){
     const existingConcept=valid.find(v=>v.name===nc);
-    // 只有当BOARDS已产生的概念且大涨股≥3只时才跳过
-    if(existingConcept&&existingConcept.stocks.length>=3)continue;
+    // 始终拉取NEW_CONCEPTS的独立个股行情（用于补充BOARDS遗漏的个股）
     const qs=await fetchStockQuote(nd.stocks);
     if(!qs||!qs.length)continue;
     const risingStocks=qs.filter(s=>s.ch>=6);
     if(risingStocks.length<3)continue;
     const avg=risingStocks.reduce((s,x)=>s+x.ch,0)/risingStocks.length;
     const lups=risingStocks.filter(x=>x.ch>=9.5).length;
-    // 如果BOARDS已有该概念但不够3只，用NEW_CONCEPTS数据替换
     if(existingConcept){
-      existingConcept.stocks=risingStocks;
-      existingConcept.change_pct=avg;
-      existingConcept.limit_up=lups;
-      existingConcept.total=risingStocks.length;
+      // 合并模式：将NEW_CONCEPTS独立拉取到的个股合并到现有概念中
+      // 这样不会遗漏不在BOARDS板块成分股中但属于该概念的个股（如星网锐捷不在任何BOARDS板块中但属于交换机概念）
+      const existingCodes=new Set(existingConcept.stocks.map(s=>s.c));
+      let addedCount=0;
+      for(const rs of risingStocks){
+        if(!existingCodes.has(rs.c)){
+          existingConcept.stocks.push(rs);
+          existingCodes.add(rs.c);
+          addedCount++;
+        }
+      }
+      if(addedCount>0){
+        // 重新计算合并后的统计数据
+        existingConcept.change_sum=existingConcept.stocks.reduce((a,s)=>a+s.ch,0);
+        existingConcept.change_pct=existingConcept.change_sum/existingConcept.stocks.length;
+        existingConcept.limit_up=existingConcept.stocks.filter(s=>s.ch>=9.5).length;
+        existingConcept.total=existingConcept.stocks.length;
+      }
     }else{
       valid.push({code:nc,name:nc,change_pct:avg,limit_up:lups,total:risingStocks.length,stocks:risingStocks,catalyst:nd.catalyst});
     }
