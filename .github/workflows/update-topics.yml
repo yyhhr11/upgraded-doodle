@@ -1,0 +1,41 @@
+name: Update Hot Topics
+
+on:
+  schedule:
+    # 每天 UTC 01:00 = 北京时间 09:00
+    - cron: '0 1 * * *'
+  workflow_dispatch:
+    # 支持手动触发
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: pip install requests
+
+      - name: Run update script
+        run: python update_hot_topics.py
+
+      - name: Commit and push
+        run: |
+          git config user.name "Hot Topics Bot"
+          git config user.email "bot@hot-topics.local"
+          git add index.html
+          if git diff --staged --quiet; then
+            echo "No changes to commit"
+          else
+            git commit -m "auto: 更新热门话题 $(TZ='Asia/Shanghai' date +%Y-%m-%d)"
+            git push
+          fi
