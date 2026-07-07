@@ -3507,30 +3507,185 @@ function isTrading(){
 function renderAlerts(){const el=document.getElementById('alerts-list');document.getElementById('ab').textContent=S.alerts.length;if(!S.alerts.length){if(el)el.innerHTML='<div class="emp"><div class="ei">👀</div><p>暂无显著异动</p></div>';return}if(el)el.innerHTML=S.alerts.map(a=>{const tops=a.topStocks||[];const cid='mine-'+a.name.replace(/[^a-zA-Z0-9\u4e00-\u9fff]/g,'');return'<div class="acard '+(a.lv==='strong'?'s':a.lv==='medium'?'m':'w')+'" onclick="document.getElementById(&quot;'+cid+'&quot;).scrollIntoView({behavior:&quot;smooth&quot;,block:&quot;start&quot;})"><div class="bn">'+(a.lv==='strong'?'🔴':a.lv==='medium'?'🟡':'🟢')+' '+a.name+'</div><div class="st"><span>涨幅 <span class="sv up">+'+a.change_pct.toFixed(1)+'%</span></span><span>涨停 <span class="sv">'+a.limit_up+'</span>只</span><span>成分 <span class="sv">'+a.total+'</span>只</span><span>得分 <span class="sv">'+a.score+'</span></span></div>'+(a.catalyst?'<div class="reason">'+a.catalyst+'</div>':'')+(tops.length?'<div style="font-size:11px;color:var(--t2);margin-top:6px;line-height:1.6">🔥 领涨：'+tops.map(s=>'<span style="color:'+(s.ch>=9.5?'var(--r)':'var(--t)')+';font-weight:600">'+s.n+'</span><span style="color:'+(s.ch>=0?'var(--r)':'var(--g)')+'">'+(s.ch>=0?'+':'')+s.ch.toFixed(1)+'%</span>').join(' | ')+'</div>':'')+'<div class="ts">'+a.time+'</div></div>'}).join('');}
 
 // ===== 热点数据获取 =====
-// ===== 全球热点话题数据 =====
-const HOT_TOPICS=[
-  // === 今天 7/1-7/2 最新 ===
-  {title:'🔴 国巨全品类电容涨价50%！被动元件超级周期',summary:'7月1日全球被动元件龙头国巨正式启动史上覆盖最广涨价：MLCC、钽电容、铝电解、固态铝电、薄膜电容、超级电容全品类调涨，覆盖约50%营收。涨价对象首次纳入直接客户(EMS/OEM)。国巨当日大涨9.61%。村田、三星电机此前已涨，MLCC从高端向全品类扩散，被动元件超级涨价周期确立。',tags:['MLCC','国巨涨价','被动元件','钽电容'],hot:'🔥 最热',source:'财联社/雪球热议',time:'7/1 15:00'},
-  {title:'🔴 先进封装涨价20%！美银：未来5倍空间',summary:'全球封测龙头日月光先进封装全线涨价20%，CEO称产能严重不足、资本支出从20亿→53亿→85亿美元。美银报告指出全球先进封装市场规模突破587亿美元同比+97%，首次超越传统封装。国内长电科技、盛合晶微、华天科技等积极扩产，A股8大芯片封测龙头受益。',tags:['先进封装','涨价','长电科技','日月光'],hot:'🔥 最热',source:'上海证券报/雪球',time:'7/2 00:01'},
-  {title:'🟡 7/1风格切换：金融股爆发，科技股冲高回落',summary:'7月1日下半场首日风格突变：券商板块盘中暴涨，银行保险止跌反弹，"买券商=买打折科技股"逻辑持续发酵。半导体高位分歧加剧，科创50独领风骚但个股分化严重。传统板块超跌反弹+地天板频现（两只个股早盘一字跌停尾盘涨停），市场情绪极端化。645家涨幅超5%，缩量至1.4万亿。',tags:['风格切换','券商','半导体分歧','地天板'],hot:'📈 热议',source:'东方财富/知乎热议',time:'7/1 15:30'},
-  {title:'🟡 美光西部数据暴跌！存储芯片见顶信号？',summary:'7月1日美光科技、西部数据等存储巨头股价暴跌，引发市场对存储芯片涨价周期持续性的担忧。此前DRAM/NAND已连续涨价超一年，HBM3E量价齐升。部分机构认为存储涨价已接近尾声，但也有观点认为AI服务器存储需求刚起步、HBM4将接力。美光暴跌是否A股存储板块的先行指标？',tags:['存储芯片','美光暴跌','HBM','周期见顶'],hot:'📈 热议',source:'东方财富/雪球',time:'7/1 23:00'},
-  {title:'🟡 三大金融巨头发声！7月政策逻辑切换',summary:'央行、金融监管总局、证监会三大金融巨头罕见同步发声，7月1日起市场底层逻辑将深刻切换。金融监管总局定险资资产负债匹配硬指标，证监会推动科创板深化改革。市场解读为"从各自为战到系统集成"的政策合力，传统金融+科技双主线或将并行。',tags:['政策','金融监管','科创板','7月策略'],hot:'📈 热议',source:'财联社/百度百家',time:'6/30 20:00'},
-  {title:'🟢 电子特气WF6 7年涨15倍+半导体材料全线涨价',summary:'六氟化钨(WF6)从2019年约12万元/吨飙升至近期200万元/吨，7年涨超15倍。环氧塑封料巨头住友电木全系列涨价10%-20%。晶合集成6月起代工涨价10%。靶材涨价60-70%、ArF光刻胶翻番、12寸大硅片缺口85%。半导体材料全线涨价潮向纵深推进。',tags:['电子特气','WF6','半导体材料','涨价'],hot:'💬 关注',source:'百度百家/雪球',time:'7/1 10:00'},
-  {title:'🟢 7月中报窗口+八部门AI工业融合新政',summary:'7月中报业绩密集披露窗口正式开启，科技股将迎"业绩验证期"。八部门联合发文深化人工智能与工业互联网融合应用。科创50近6月+154.92%但个股分化加剧，屹唐股份51.88%限售股解禁引关注。基金经理：中报将验证AI算力真实业绩，分化中优质标的脱颖而出。',tags:['中报','AI工业融合','科创50','业绩验证'],hot:'💬 关注',source:'东方财富/财联社',time:'7/1 08:30'},
-  {title:'🟢 人形机器人量产+十五五政策预期',summary:'特斯拉Optimus V3确定7-8月量产节点临近，绿的谐波(减速器)持续受追捧。十五五高端制造扶持政策即将落地，工信部/国资委联合发布具身智能专项行动。市场预期人形机器人将成为下半年最强主题之一。传艺科技7连板飙升近100%带动短线情绪。',tags:['人形机器人','特斯拉','十五五','具身智能'],hot:'💬 关注',source:'雪球/财联社',time:'7/1 14:00'},
-  // === 近期持续热度 ===
-  {title:'⚪ 黄仁勋：AI基建周期长达数十年（持续发酵）',summary:'英伟达股东大会上黄仁勋称"有用的AI时代"已至，本轮建设以数十年计。英伟达老款GPU重新在美上市。AI算力算法成新时代"水电煤"，三大瓶颈：CPU需求激增、存储芯片紧缺、光通信加速换代。美股七巨头6月市值蒸发超2.3万亿美元，资金轮动至纯半导体。',tags:['AI算力','英伟达','美股','七巨头'],hot:'🌐 全球',source:'东方财富(223万浏览)',time:'6/24 09:00'},
-  {title:'⚪ 伊朗暂停伊美谈判+韩国熔断+黄金承压',summary:'伊朗代表团暂停与美核谈判，地缘风险持续。韩国KOSPI暴跌触发熔断，亚太股市承压。黄金跌破4000美元后震荡筑底，市场静待非农数据。A股走出独立行情，下半年关注中报+科技主线。史上最严电池安全标准7/1实施。',tags:['地缘风险','韩国熔断','黄金','非农'],hot:'🌐 全球',source:'东方财富/财联社',time:'6/21 22:00'},
-  {title:'⚪ 低空经济政策加速+亿航获全球首张适航证',summary:'低空经济持续升温，亿航智能获全球首张无人驾驶eVTOL型号合格证。深圳、合肥、成都等多地出台低空经济产业规划，2025年市场规模预计突破万亿。无人机物流、城市空中交通(UAM)等场景加速落地。A股低空经济概念反复活跃，飞行汽车+无人机双主线轮动。',tags:['低空经济','亿航智能','eVTOL','无人机'],hot:'🌐 全球',source:'财联社/东方财富',time:'7/1 11:00'},
-  {title:'⚪ 算力基建再加速：华为昇腾AI集群规模翻倍',summary:'华为昇腾AI计算集群规模半年翻倍，昇腾910B芯片出货量激增。国产算力替代进程加速，各地智算中心密集开工。服务器、光模块、液冷等算力基建环节持续受益。机构预计2025年国产AI芯片市场份额将突破30%，国产算力生态进入爆发期。',tags:['华为昇腾','算力基建','国产替代','AI芯片'],hot:'💬 关注',source:'证券时报/雪球',time:'7/1 09:30'},
+// ===== 全球热点话题数据（fallback静态数据，实时数据优先） =====
+const HOT_TOPICS_FALLBACK=[
+  {title:'🔴 国巨全品类电容涨价50%！被动元件超级周期',summary:'全球被动元件龙头国巨启动史上覆盖最广涨价：MLCC、钽电容、铝电解、固态铝电、薄膜电容、超级电容全品类调涨。村田、三星电机此前已涨，MLCC从高端向全品类扩散，被动元件超级涨价周期确立。',tags:['MLCC','国巨涨价','被动元件','钽电容'],hot:'🔥 最热',source:'财联社/雪球热议',time:''},
+  {title:'🔴 先进封装涨价20%！美银：未来5倍空间',summary:'全球封测龙头日月光先进封装全线涨价20%，CEO称产能严重不足。美银报告指出全球先进封装市场规模突破587亿美元同比+97%，首次超越传统封装。长电科技、盛合晶微、华天科技等积极扩产，A股8大芯片封测龙头受益。',tags:['先进封装','涨价','长电科技','日月光'],hot:'🔥 最热',source:'上海证券报/雪球',time:''},
+  {title:'🟡 美光西部数据暴跌！存储芯片见顶信号？',summary:'美光科技、西部数据等存储巨头股价暴跌，引发市场对存储芯片涨价周期持续性的担忧。部分机构认为存储涨价已接近尾声，但也有观点认为AI服务器存储需求刚起步、HBM4将接力。',tags:['存储芯片','美光暴跌','HBM','周期见顶'],hot:'📈 热议',source:'东方财富/雪球',time:''},
+  {title:'🟡 电子特气WF6 7年涨15倍+半导体材料全线涨价',summary:'六氟化钨(WF6)从2019年约12万元/吨飙升至近期200万元/吨，7年涨超15倍。环氧塑封料巨头住友电木全系列涨价10%-20%。靶材涨价60-70%、ArF光刻胶翻番、12寸大硅片缺口85%。半导体材料全线涨价潮向纵深推进。',tags:['电子特气','WF6','半导体材料','涨价'],hot:'📈 热议',source:'百度百家/雪球',time:''},
+  {title:'🟢 7月中报窗口+AI工业融合新政',summary:'7月中报业绩密集披露窗口正式开启，科技股迎"业绩验证期"。八部门联合发文深化人工智能与工业互联网融合应用。基金经理：中报将验证AI算力真实业绩，分化中优质标的脱颖而出。',tags:['中报','AI工业融合','科创50','业绩验证'],hot:'💬 关注',source:'东方财富/财联社',time:''},
+  {title:'🟢 人形机器人量产+十五五政策预期',summary:'特斯拉Optimus V3确定7-8月量产节点临近。十五五高端制造扶持政策即将落地，工信部/国资委联合发布具身智能专项行动。市场预期人形机器人将成为下半年最强主题之一。',tags:['人形机器人','特斯拉','十五五','具身智能'],hot:'💬 关注',source:'雪球/财联社',time:''},
+  {title:'⚪ 黄仁勋：AI基建周期长达数十年',summary:'英伟达股东大会上黄仁勋称"有用的AI时代"已至，本轮建设以数十年计。AI算力算法成新时代"水电煤"，三大瓶颈：CPU需求激增、存储芯片紧缺、光通信加速换代。',tags:['AI算力','英伟达','美股','七巨头'],hot:'🌐 全球',source:'东方财富',time:''},
+  {title:'⚪ 伊朗暂停伊美谈判+韩国熔断+黄金承压',summary:'伊朗代表团暂停与美核谈判，地缘风险持续。韩国KOSPI暴跌触发熔断，亚太股市承压。A股走出独立行情，下半年关注中报+科技主线。',tags:['地缘风险','韩国熔断','黄金','非农'],hot:'🌐 全球',source:'东方财富/财联社',time:''},
+  {title:'⚪ 低空经济政策加速+亿航获全球首张适航证',summary:'低空经济持续升温，亿航智能获全球首张无人驾驶eVTOL型号合格证。深圳、合肥、成都等多地出台低空经济产业规划，2025年市场规模预计突破万亿。',tags:['低空经济','亿航智能','eVTOL','无人机'],hot:'🌐 全球',source:'财联社/东方财富',time:''},
+  {title:'⚪ 算力基建再加速：华为昇腾AI集群规模翻倍',summary:'华为昇腾AI计算集群规模半年翻倍，昇腾910B芯片出货量激增。国产算力替代进程加速，各地智算中心密集开工。机构预计2025年国产AI芯片市场份额将突破30%。',tags:['华为昇腾','算力基建','国产替代','AI芯片'],hot:'💬 关注',source:'证券时报/雪球',time:''},
+  {title:'⚪ 脑机接口临床突破+可控核聚变新进展',summary:'脑虎科技启动国内首款硬膜下植入式脑机接口注册临床。葛卫东参股核聚变公司，资本加速布局。前沿科技赛道持续升温，A股相关概念反复活跃。',tags:['脑机接口','核聚变','前沿科技','注册临床'],hot:'💬 关注',source:'科创板日报/财联社',time:''},
+  {title:'⚪ 风格切换：金融股爆发，科技股高位分歧',summary:'券商板块盘中爆发，银行保险止跌反弹。半导体高位分歧加剧，传统板块超跌反弹。市场情绪极端化，缩量博弈下资金高低切换明显。',tags:['风格切换','券商','半导体分歧','高低切换'],hot:'🌐 全球',source:'东方财富/雪球',time:''},
 ];
 
-function renderHotTopics(){
+// 当前热点数据（初始为fallback，实时数据加载后替换）
+let liveHotTopics=null;
+
+// JSONP方式获取东方财富快讯
+function jsonpFetch(url,callbackParam){
+  return new Promise((resolve,reject)=>{
+    const cbName='_jpcb_'+Date.now()+'_'+Math.floor(Math.random()*10000);
+    const script=document.createElement('script');
+    const timeout=setTimeout(()=>{cleanup();reject(new Error('JSONP timeout'))},8000);
+    function cleanup(){clearTimeout(timeout);delete window[cbName];if(script.parentNode)script.parentNode.removeChild(script)}
+    window[cbName]=function(data){cleanup();resolve(data)};
+    script.src=url+(url.includes('?')?'&':'?')+callbackParam+'='+cbName;
+    script.onerror=()=>{cleanup();reject(new Error('JSONP error'))};
+    document.head.appendChild(script);
+  });
+}
+
+// 从快讯标题中提取概念标签
+function extractHotTags(title,digest){
+  const text=(title||'')+' '+(digest||'');
+  const tags=new Set();
+  // 匹配CONCEPT_KEYWORDS中的关键词
+  for(const[kw,concepts]of Object.entries(CONCEPT_KEYWORDS)){
+    if(text.includes(kw)){
+      for(const c of concepts){tags.add(c)}
+    }
+  }
+  // 额外热点关键词
+  const extraKW=['涨价','暴跌','暴涨','突破','新高','政策','量产','地缘','熔断','中报',
+    '业绩','监管','降息','加息','关税','制裁','解禁','重组','并购','回购','分红',
+    '涨价潮','超级周期','供不应求','产能不足','国产替代','技术突破','首发'];
+  for(const kw of extraKW){if(text.includes(kw))tags.add(kw)}
+  // 限制标签数量
+  return [...tags].slice(0,4);
+}
+
+// 判断快讯热度等级
+function getHotLevel(commentNum,title,digest){
+  const cn=parseInt(commentNum)||0;
+  const text=(title||'')+(digest||'');
+  const isHot=/(暴涨|涨停|大涨|飙升|新高|突破|超级|重磅|突发|紧急)/.test(text);
+  const isGlobal=/(美股|港股|欧股|日股|韩股|黄金|原油|美元|美联储|非农|地缘|伊朗|沙特|俄|乌|关税|制裁)/.test(text);
+  if(cn>=50||(cn>=20&&isHot))return '🔥 最热';
+  if(cn>=20||(cn>=10&&isHot))return '📈 热议';
+  if(isGlobal)return '🌐 全球';
+  return '💬 关注';
+}
+
+// 从东方财富快讯API获取实时热点话题
+async function fetchLiveHotTopics(){
+  try{
+    const data=await jsonpFetch('https://newsapi.eastmoney.com/kuaixun/v2/api/list','callback');
+    if(!data||!data.news||!data.news.length)return null;
+    
+    const now=new Date();
+    const today=new Date(now.getFullYear(),now.getMonth(),now.getDate());
+    const newsList=data.news.filter(n=>{
+      // 过滤：只保留A股相关+全球市场相关
+      const col=n.column||'';
+      const isRelevant=/(100|102|103|105|106|132)/.test(col); // 100=A股,102=市场,103=个股,105=全球,106=行业,132=期货
+      if(!isRelevant)return false;
+      // 过滤太短的标题
+      if(!n.title||n.title.length<8)return false;
+      // 过滤纯技术性快讯
+      if(/^(快讯|午评|收评|开盘|收盘|集合竞价|龙虎榜)/.test(n.title))return false;
+      return true;
+    });
+    
+    // 按热度评分排序（评论数 + 概念匹配 + 标题长度）
+    const scored=newsList.map(n=>{
+      const cn=parseInt(n.commentnum)||0;
+      const tags=extractHotTags(n.title,n.digest);
+      const titleLen=n.title.length;
+      // 综合评分：评论数权重高 + 有概念标签加分 + 标题信息量
+      let score=cn*3+tags.length*10+Math.min(titleLen/5,10);
+      // 标题含特定关键词加分
+      if(/(暴涨|涨停|大涨|飙升|新高|突破|超级|重磅|突发|紧急|政策|降息|加息)/.test(n.title))score+=20;
+      if(/(涨价|供不应求|产能不足|超级周期|国产替代)/.test(n.title))score+=15;
+      return{...n,tags,score};
+    });
+    
+    scored.sort((a,b)=>b.score-a.score);
+    
+    // 去重：相似标题只保留最高分
+    const deduped=[];
+    const seenTitles=new Set();
+    for(const item of scored){
+      const key=item.title.slice(0,15);
+      if(seenTitles.has(key))continue;
+      seenTitles.add(key);
+      deduped.push(item);
+      if(deduped.length>=30)break; // 最多30条候选
+    }
+    
+    // 取前12条
+    const top12=deduped.slice(0,12).map(n=>{
+      const digest=(n.digest||'').replace(/^【[^】]*】/,'').trim();
+      const showtime=n.showtime||'';
+      const timeShort=showtime?showtime.slice(5,16).replace(' ',' '):'';
+      return{
+        title:(n.tags&&n.tags.length?'🔴 ':'')+n.title,
+        summary:digest.slice(0,120)+(digest.length>120?'...':''),
+        tags:n.tags||['市场热点'],
+        hot:getHotLevel(n.commentnum,n.title,n.digest),
+        source:n.Art_Media_Name||'东方财富',
+        time:timeShort
+      };
+    });
+    
+    // 确保热点级别分布合理：至少2条🔥最热
+    const hasFire=top12.filter(t=>t.hot==='🔥 最热').length;
+    if(hasFire<2){
+      // 提升评分最高的2条为最热
+      for(let i=0;i<Math.min(2,top12.length);i++){
+        if(top12[i].hot!=='🔥 最热')top12[i].hot='🔥 最热';
+      }
+    }
+    
+    // 补充emoji前缀
+    for(const t of top12){
+      if(!t.title.startsWith('🔴')&&!t.title.startsWith('🟡')&&!t.title.startsWith('🟢')&&!t.title.startsWith('⚪')){
+        if(t.hot==='🔥 最热')t.title='🔴 '+t.title;
+        else if(t.hot==='📈 热议')t.title='🟡 '+t.title;
+        else if(t.hot==='💬 关注')t.title='🟢 '+t.title;
+        else t.title='⚪ '+t.title;
+      }
+    }
+    
+    return top12;
+  }catch(e){
+    console.warn('实时热点抓取失败，使用静态数据:',e.message);
+    return null;
+  }
+}
+
+// 获取热点数据（实时优先，fallback兜底）
+async function getHotTopics(){
+  if(liveHotTopics)return liveHotTopics;
+  // 尝试实时抓取
+  const live=await fetchLiveHotTopics();
+  if(live&&live.length>=8){
+    liveHotTopics=live;
+    return live;
+  }
+  // fallback：使用静态数据，更新时间为今天
+  const now=new Date();
+  const ts=now.getMonth()+1+'/'+now.getDate()+' '+
+    String(now.getHours()).padStart(2,'0')+':'+String(now.getMinutes()).padStart(2,'0');
+  return HOT_TOPICS_FALLBACK.map(t=>({...t,time:t.time||ts}));
+}
+
+function renderHotTopics(topics){
   const el=document.getElementById('hot-topics');
   if(!el)return;
-  const topics=HOT_TOPICS; // 严格12条
-  el.innerHTML=topics.map((t,i)=>{
-    const tags=t.tags.map(tag=>'<span class="topic-tag">'+tag+'</span>').join('');
+  if(!topics||!topics.length){
+    // 如果没有任何数据，用fallback渲染
+    const now=new Date();
+    const ts=now.getMonth()+1+'/'+now.getDate()+' '+
+      String(now.getHours()).padStart(2,'0')+':'+String(now.getMinutes()).padStart(2,'0');
+    topics=HOT_TOPICS_FALLBACK.map(t=>({...t,time:t.time||ts}));
+  }
+  el.innerHTML=topics.slice(0,12).map((t,i)=>{
+    const tags=(t.tags||[]).map(tag=>'<span class="topic-tag">'+tag+'</span>').join('');
     return'<div class="topic-card"><div class="topic-title" onclick="this.parentElement.classList.toggle(\'expanded\')" style="cursor:pointer">'+t.title+'</div><div class="topic-summary">'+t.summary+'</div><div class="topic-tags">'+tags+'</div><div class="topic-meta"><span class="topic-hot">'+t.hot+'</span><span class="topic-source">'+t.source+'</span><span class="topic-time">'+t.time+'</span></div></div>';
   }).join('');
 }
@@ -3743,7 +3898,9 @@ function renderMarketDist(data){
 }
 
 async function updateHotData(){
-  renderHotTopics();
+  // 异步获取实时热点+立即用缓存渲染
+  const topics=await getHotTopics();
+  renderHotTopics(topics);
   const indexDetail=await fetchIndexDetail();
   renderIndexDetail(indexDetail);
   // 从已有的 marketOverview 数据渲染市场概况
@@ -3755,8 +3912,11 @@ function renderMining(){const el=document.getElementById('mining-list'),bd=docum
 
 function toast(msg,type){const e=document.createElement('div');e.className='toast '+type;e.textContent=msg;document.getElementById('toast').appendChild(e);setTimeout(()=>e.remove(),5000)}
 document.addEventListener('DOMContentLoaded',()=>{
-  // 立即渲染静态热点话题（不依赖API）
-  renderHotTopics();
+  // 先用fallback渲染，然后异步获取实时热点替换
+  renderHotTopics(null);
+  getHotTopics().then(topics=>{
+    if(topics&&topics.length>=8)renderHotTopics(topics);
+  });
   
   const st=document.getElementById('st'),si=document.getElementById('si');
   let isFirstScan=true;
