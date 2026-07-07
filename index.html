@@ -3032,7 +3032,7 @@ function renderMarketOverview(data){
   if(aEl)aEl.textContent=formatAmt(data.totalAmt);
 }
 
-const S={scan:0,alerts:[],mined:[],prev:{},orphans:[]};
+const S={scan:0,alerts:[],mined:[],prev:{},orphans:[],nearAlerts:[],nearMined:[],trueOrphans:[]};
 
 async function scan(){
   S.scan++;const el=document.getElementById('sc'),st=document.getElementById('st'),si=document.getElementById('si');
@@ -3366,7 +3366,7 @@ async function scan(){
   saveDailyAlerts(alerts);
   renderTrendConcepts();
   
-  // === 第8.6步：收集独立大涨股（涨幅≥6%但未被任何概念收录的个股）===
+  // === 第8.6步：独立大涨股二次聚合——找出隐藏的同概念群体 ===
   const conceptStocks=new Set();
   for(const a of alerts){for(const s of a.stocks||[]){conceptStocks.add(s.c);}}
   const orphans=[];
@@ -3374,7 +3374,47 @@ async function scan(){
     if(!conceptStocks.has(code))orphans.push(s);
   }
   orphans.sort((a,b)=>b.ch-a.ch);
-  S.orphans=orphans;
+  
+  // 对独立大涨股用 inferConceptByName 再次推断概念
+  const orphanConcepts={}; // {conceptName: [{c,n,ch}]}
+  const trueOrphans=[];    // 完全无法归类的
+  for(const s of orphans){
+    const tag=inferConceptByName(s.c,s.n);
+    if(tag){
+      if(!orphanConcepts[tag])orphanConcepts[tag]=[];
+      orphanConcepts[tag].push(s);
+    }else{
+      trueOrphans.push(s);
+    }
+  }
+  
+  // 准异动概念：同概念≥2只独立大涨股 → 值得深挖
+  const nearAlerts=[];
+  for(const[tag,stocks]of Object.entries(orphanConcepts)){
+    if(stocks.length>=2){
+      const avg=stocks.reduce((s,x)=>s+x.ch,0)/stocks.length;
+      const lups=stocks.filter(x=>x.ch>=9.5).length;
+      nearAlerts.push({name:tag,change_pct:avg,limit_up:lups,total:stocks.length,stocks:stocks,catalyst:getCatalyst(tag)});
+    }else{
+      trueOrphans.push(stocks[0]);
+    }
+  }
+  nearAlerts.sort((a,b)=>b.change_pct-a.change_pct);
+  trueOrphans.sort((a,b)=>b.ch-a.ch);
+  
+  // 对准异动概念做低位挖掘
+  S.nearAlerts=nearAlerts;
+  S.trueOrphans=trueOrphans;
+  
+  // 挖掘准异动概念的低位标的
+  const nearMined=[];
+  for(const na of nearAlerts){
+    const keywords=getKeywords(na.name);
+    const stocks=mineLow({name:na.name,stocks:na.stocks,change_pct:na.change_pct},keywords,null);
+    nearMined.push({...na,keywords,stocks});
+  }
+  S.nearMined=nearMined;
+  
   renderOrphans();
   
   const trading=isTrading();
@@ -3556,18 +3596,60 @@ function renderTrendConcepts(){
 function renderOrphans(){
   const el=document.getElementById('orphans-list'),bd=document.getElementById('ob');
   if(!el)return;
-  if(!S.orphans.length){
+  
+  let html='';
+  const totalOrphans=(S.trueOrphans||[]).length;
+  
+  // === 准异动概念（同概念≥2只独立大涨股，值得深挖）===
+  if(S.nearAlerts&&S.nearAlerts.length>0){
+    for(let i=0;i<S.nearAlerts.length;i++){
+      const na=S.nearAlerts[i];
+      const mined=S.nearMined?.[i];
+      const cls=na.change_pct>=5?'s':na.change_pct>=3?'m':'w';
+      html+='<div class="acard '+cls+'" style="border-left-color:var(--o)">';
+      html+='<div class="bn">🔍 '+na.name+' <span style="font-size:11px;color:var(--o)">准异动·'+na.total+'只</span></div>';
+      html+='<div class="st"><span>均涨幅 <b class="up">+'+na.change_pct.toFixed(1)+'%</b></span>';
+      if(na.limit_up>0)html+='<span>涨停 <b class="up">'+na.limit_up+'</b>只</span>';
+      html+='</div>';
+      // 大涨股
+      html+='<div style="margin-top:6px;display:flex;flex-wrap:wrap;gap:4px">';
+      for(const s of na.stocks){
+        html+='<span style="font-size:11px;padding:2px 8px;background:rgba(245,158,11,.12);border-radius:4px;color:var(--o);font-weight:600">'+s.n+' +'+s.ch.toFixed(1)+'%</span>';
+      }
+      html+='</div>';
+      // 催化原因
+      if(na.catalyst)html+='<div class="reason">'+na.catalyst+'</div>';
+      // 低位挖掘
+      if(mined&&mined.stocks&&mined.stocks.length>0){
+        html+='<div style="margin-top:8px;font-size:11px;color:var(--g)">💎 低位挖掘:</div>';
+        html+='<div style="display:flex;flex-wrap:wrap;gap:4px;margin-top:4px">';
+        for(const ms of mined.stocks){
+          html+='<span style="font-size:10px;padding:2px 8px;background:rgba(34,197,94,.1);border-radius:4px;color:var(--g);cursor:pointer" title="'+ms.logic+'">'+ms.n+(ms.ch!==null?' +'+ms.ch.toFixed(1)+'%':'')+'</span>';
+        }
+        html+='</div>';
+      }
+      html+='</div>';
+    }
+  }
+  
+  // === 真正的独立大涨股（完全无法归类）===
+  if(totalOrphans>0){
+    html+='<div style="padding:8px 0;margin-top:4px;font-size:11px;color:var(--t3)">📌 其他独立大涨股 ('+totalOrphans+'只)</div>';
+    html+=S.trueOrphans.map(s=>{
+      if(!s.ch||isNaN(s.ch))return '';
+      const cls=s.ch>0?'up':'down';
+      const sign=s.ch>0?'+':'';
+      return '<div style="display:flex;justify-content:space-between;align-items:center;padding:5px 0;border-bottom:1px solid rgba(255,255,255,.03);font-size:12px"><span style="font-weight:600;color:var(--t)">'+s.n+'</span><span style="font-size:11px;color:var(--t3)">'+s.c+'</span><span style="color:var(--'+cls+');font-weight:600">'+sign+s.ch.toFixed(1)+'%</span></div>';
+    }).join('');
+  }
+  
+  if(!html){
     el.innerHTML='<div style="padding:8px 0;color:var(--t3);font-size:11px;text-align:center">所有大涨股均已归入异动概念</div>';
     if(bd)bd.style.display='none';
     return;
   }
-  if(bd){bd.style.display='';bd.textContent=S.orphans.length;}
-  el.innerHTML=S.orphans.map(s=>{
-    if(!s.ch||isNaN(s.ch))return '';
-    const cls=s.ch>0?'up':'down';
-    const sign=s.ch>0?'+':'';
-    return '<div style="display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid rgba(255,255,255,.04);font-size:12px"><span style="font-weight:600;color:var(--t)">'+s.n+'</span><span style="font-size:11px;color:var(--t3)">'+s.c+'</span><span style="color:var(--'+cls+');font-weight:600">'+sign+s.ch.toFixed(1)+'%</span></div>';
-  }).join('');
+  if(bd){bd.style.display='';bd.textContent=(S.nearAlerts?S.nearAlerts.length:0)+totalOrphans;}
+  el.innerHTML=html;
 }
 
 async function fetchIndexDetail(){
