@@ -3669,21 +3669,134 @@ async function fetchHotTopicsFromEM(){
   }
 }
 
-// 获取热点话题：同花顺优先 → 东方财富兜底 → fallback
+// ===== 从东方财富股吧话题接口获取真实热门讨论话题（form+iframe绕过CORS） =====
+// gubatopic.eastmoney.com 的 POST 接口没有 CORS 头，但 form 提交不受同源策略限制
+// 通过动态创建 form+iframe 提交 POST，在 iframe onload 中读取返回的 JSON
+function fetchHotTopicsFromGuba(){
+  return new Promise((resolve)=>{
+    const iframe=document.createElement('iframe');
+    iframe.name='guba_topic_iframe_'+Date.now();
+    iframe.style.display='none';
+    iframe.sandbox='allow-same-origin allow-scripts';
+    document.body.appendChild(iframe);
+    
+    const form=document.createElement('form');
+    form.method='POST';
+    form.action='https://gubatopic.eastmoney.com/interface/GetData.aspx?path=newtopic/api/Topic/HistoryTopicRead';
+    form.target=iframe.name;
+    form.acceptCharset='utf-8';
+    form.style.display='none';
+    
+    // 添加 POST 参数
+    const fields={param:'ps=30&p=1&type=0','path':'newtopic/api/Topic/HomePageListRead',env:'2'};
+    for(const[k,v]of Object.entries(fields)){
+      const input=document.createElement('input');
+      input.type='hidden';input.name=k;input.value=v;
+      form.appendChild(input);
+    }
+    document.body.appendChild(form);
+    
+    const timeout=setTimeout(()=>{
+      cleanup();
+      resolve(null);
+    },10000);
+    
+    function cleanup(){
+      clearTimeout(timeout);
+      if(iframe.parentNode)iframe.parentNode.removeChild(iframe);
+      if(form.parentNode)form.parentNode.removeChild(form);
+    }
+    
+    iframe.onload=()=>{
+      try{
+        const raw=iframe.contentDocument?.body?.textContent||iframe.contentWindow?.document?.body?.textContent||'';
+        if(!raw||raw.length<50){cleanup();resolve(null);return}
+        const data=JSON.parse(raw);
+        const items=data.re||[];
+        if(!items.length){cleanup();resolve(null);return}
+        
+        const now=nowTimeStr();
+        const topics=[];
+        
+        // 按热度（帖子数+点击数）排序
+        const sorted=items.sort((a,b)=>{
+          const sa=(parseInt(a.postNumber)||0)*2+(parseInt(a.clickNumber)||0);
+          const sb=(parseInt(b.postNumber)||0)*2+(parseInt(b.clickNumber)||0);
+          return sb-sa;
+        });
+        
+        for(let i=0;i<Math.min(12,sorted.length);i++){
+          const t=sorted[i];
+          const desc=(t.desc||t.title||'').replace(/<[^>]+>/g,'');
+          const postNum=parseInt(t.postNumber)||0;
+          const clickNum=parseInt(t.clickNumber)||0;
+          const hot=i===0?'🔥 最热':i<=2?'📈 热议':i<=5?'💬 关注':'🌐 全球';
+          const emoji=i===0?'🔴 ':i<=2?'🟡 ':i<=5?'🟢 ':'⚪ ';
+          
+          // 从描述中提取概念标签
+          const tags=extractConceptTags(desc);
+          
+          topics.push({
+            title:emoji+desc.slice(0,50)+(desc.length>50?'...':''),
+            summary:desc.slice(0,140)+(desc.length>140?'...':'')+
+              ' | '+postNum+'帖 · '+(clickNum>=10000?(clickNum/10000).toFixed(1)+'万':clickNum)+'浏览',
+            tags:tags.length?tags.slice(0,4):['热门话题'],
+            hot,source:'东方财富股吧',time:now
+          });
+        }
+        
+        cleanup();
+        resolve(topics.length>=8?topics:null);
+      }catch(e){
+        console.warn('股吧话题解析失败:',e.message);
+        cleanup();
+        resolve(null);
+      }
+    };
+    
+    // 提交表单
+    form.submit();
+  });
+}
+
+// 从话题描述中提取概念标签
+function extractConceptTags(text){
+  const tags=new Set();
+  for(const[kw,concepts]of Object.entries(CONCEPT_KEYWORDS)){
+    if(text.includes(kw)){
+      for(const c of concepts){tags.add(c)}
+    }
+  }
+  // 额外热点关键词
+  const extraKW=['涨价','暴跌','暴涨','突破','新高','政策','量产','地缘','熔断','中报',
+    '业绩','监管','降息','加息','关税','制裁','解禁','重组','并购','回购','分红',
+    '涨价潮','超级周期','供不应求','产能不足','国产替代','技术突破','首发',
+    'IPO','上市','亏损','盈利','翻倍','腰斩','崩盘','牛市','熊市'];
+  for(const kw of extraKW){if(text.includes(kw))tags.add(kw)}
+  return [...tags];
+}
+
+// 获取热点话题：股吧话题 → 同花顺热股榜 → 东方财富板块 → fallback
 async function fetchLiveHotTopics(){
-  // 先试同花顺（CORS ✅）
-  let topics=await fetchHotTopicsFromTHS();
+  // 1. 东方财富股吧真实讨论话题（form+iframe，无CORS限制）
+  let topics=await fetchHotTopicsFromGuba();
   if(topics&&topics.length>=8){
     liveHotTopics=topics;
     return topics;
   }
-  // 再试东方财富push2（浏览器端可用）
+  // 2. 同花顺热股榜（CORS ✅）
+  topics=await fetchHotTopicsFromTHS();
+  if(topics&&topics.length>=8){
+    liveHotTopics=topics;
+    return topics;
+  }
+  // 3. 东方财富push2热门板块（浏览器端可用）
   topics=await fetchHotTopicsFromEM();
   if(topics&&topics.length>=8){
     liveHotTopics=topics;
     return topics;
   }
-  // fallback
+  // 4. fallback
   const ts=nowTimeStr();
   return HOT_TOPICS_FALLBACK.map(t=>({...t,time:t.time||ts}));
 }
