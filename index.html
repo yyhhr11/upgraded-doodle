@@ -3417,9 +3417,10 @@ async function scan(){
   
   renderOrphans();
   
-  // === 第8.7步：从扫描结果自动生成实时热点话题 ===
-  const hotTopics=generateHotTopicsFromScan(alerts,S.mined,nearAlerts,trueOrphans,marketData);
-  renderHotTopics(hotTopics);
+  // === 第8.7步：刷新实时热点话题（同花顺+东方财富） ===
+  fetchLiveHotTopics().then(topics=>{
+    if(topics&&topics.length>=8)renderHotTopics(topics);
+  });
   
   const trading=isTrading();
   st.textContent=trading?'● 交易中':'○ 盘后';
@@ -3511,7 +3512,7 @@ function isTrading(){
 function renderAlerts(){const el=document.getElementById('alerts-list');document.getElementById('ab').textContent=S.alerts.length;if(!S.alerts.length){if(el)el.innerHTML='<div class="emp"><div class="ei">👀</div><p>暂无显著异动</p></div>';return}if(el)el.innerHTML=S.alerts.map(a=>{const tops=a.topStocks||[];const cid='mine-'+a.name.replace(/[^a-zA-Z0-9\u4e00-\u9fff]/g,'');return'<div class="acard '+(a.lv==='strong'?'s':a.lv==='medium'?'m':'w')+'" onclick="document.getElementById(&quot;'+cid+'&quot;).scrollIntoView({behavior:&quot;smooth&quot;,block:&quot;start&quot;})"><div class="bn">'+(a.lv==='strong'?'🔴':a.lv==='medium'?'🟡':'🟢')+' '+a.name+'</div><div class="st"><span>涨幅 <span class="sv up">+'+a.change_pct.toFixed(1)+'%</span></span><span>涨停 <span class="sv">'+a.limit_up+'</span>只</span><span>成分 <span class="sv">'+a.total+'</span>只</span><span>得分 <span class="sv">'+a.score+'</span></span></div>'+(a.catalyst?'<div class="reason">'+a.catalyst+'</div>':'')+(tops.length?'<div style="font-size:11px;color:var(--t2);margin-top:6px;line-height:1.6">🔥 领涨：'+tops.map(s=>'<span style="color:'+(s.ch>=9.5?'var(--r)':'var(--t)')+';font-weight:600">'+s.n+'</span><span style="color:'+(s.ch>=0?'var(--r)':'var(--g)')+'">'+(s.ch>=0?'+':'')+s.ch.toFixed(1)+'%</span>').join(' | ')+'</div>':'')+'<div class="ts">'+a.time+'</div></div>'}).join('');}
 
 // ===== 热点数据获取 =====
-// ===== 全球热点话题数据（fallback静态数据，scan后自动替换为实时数据） =====
+// ===== 全球热点话题数据（fallback，实时数据优先） =====
 const HOT_TOPICS_FALLBACK=[
   {title:'🔴 国巨全品类电容涨价50%！被动元件超级周期',summary:'全球被动元件龙头国巨启动史上覆盖最广涨价：MLCC、钽电容、铝电解、固态铝电、薄膜电容、超级电容全品类调涨。村田、三星电机此前已涨，MLCC从高端向全品类扩散，被动元件超级涨价周期确立。',tags:['MLCC','国巨涨价','被动元件','钽电容'],hot:'🔥 最热',source:'财联社/雪球热议',time:''},
   {title:'🔴 先进封装涨价20%！美银：未来5倍空间',summary:'全球封测龙头日月光先进封装全线涨价20%，CEO称产能严重不足。美银报告指出全球先进封装市场规模突破587亿美元同比+97%，首次超越传统封装。长电科技、盛合晶微、华天科技等积极扩产，A股8大芯片封测龙头受益。',tags:['先进封装','涨价','长电科技','日月光'],hot:'🔥 最热',source:'上海证券报/雪球',time:''},
@@ -3527,123 +3528,170 @@ const HOT_TOPICS_FALLBACK=[
   {title:'⚪ 风格切换：金融股爆发，科技股高位分歧',summary:'券商板块盘中爆发，银行保险止跌反弹。半导体高位分歧加剧，传统板块超跌反弹。市场情绪极端化，缩量博弈下资金高低切换明显。',tags:['风格切换','券商','半导体分歧','高低切换'],hot:'🌐 全球',source:'东方财富/雪球',time:''},
 ];
 
-// 当前热点数据（初始null用fallback，scan后自动生成）
+// 当前实时热点数据
 let liveHotTopics=null;
 
-// 获取当前时间字符串
 function nowTimeStr(){
   const now=new Date();
   return (now.getMonth()+1)+'/'+now.getDate()+' '+
     String(now.getHours()).padStart(2,'0')+':'+String(now.getMinutes()).padStart(2,'0');
 }
 
-// 从扫描结果自动生成热点话题
-function generateHotTopicsFromScan(alerts,mined,nearAlerts,orphans,indexData){
-  const topics=[];
-  const now=nowTimeStr();
-  
-  // 1. 从异动板块生成热点（前6条最重要）
-  const sortedAlerts=[...(alerts||[])].sort((a,b)=>b.score-a.score);
-  for(let i=0;i<Math.min(6,sortedAlerts.length);i++){
-    const a=sortedAlerts[i];
-    const tops=a.topStocks||[];
-    const topNames=tops.slice(0,3).map(s=>s.n).join('、');
-    const summary='板块均涨幅+'+a.change_pct.toFixed(1)+'%，'+a.limit_up+'只涨停'+
-      (a.catalyst?'。'+a.catalyst:'')+
-      (topNames?'。领涨：'+topNames:'');
-    const tags=[a.name,...(a.keywords||[]).slice(0,2)];
-    const hot=i===0?'🔥 最热':i<=2?'📈 热议':'💬 关注';
-    const emoji=i===0?'🔴 ':i<=2?'🟡 ':'🟢 ';
-    topics.push({
-      title:emoji+a.name+'板块异动！均涨幅+'+a.change_pct.toFixed(1)+'%',
-      summary:summary.slice(0,150),
-      tags:[...new Set(tags)].slice(0,4),
-      hot,source:'实时扫描',time:now
-    });
-  }
-  
-  // 2. 从准异动概念生成热点（2-3条）
-  if(nearAlerts&&nearAlerts.length>0){
-    for(let i=0;i<Math.min(3,nearAlerts.length);i++){
-      const na=nearAlerts[i];
-      const tops=na.stocks||[];
-      const topNames=tops.slice(0,3).map(s=>s.n).join('、');
-      const summary=na.total+'只独立大涨股同属"'+na.name+'"概念，均涨幅+'+na.change_pct.toFixed(1)+'%'+
-        (na.limit_up>0?'，'+na.limit_up+'只涨停':'')+
-        (na.catalyst?'。'+na.catalyst:'')+
-        (topNames?'。个股：'+topNames:'');
-      topics.push({
-        title:'🔍 准异动发现：'+na.name+'概念'+na.total+'只个股齐涨',
-        summary:summary.slice(0,150),
-        tags:[na.name,'准异动','深挖机会'],
-        hot:'💬 关注',source:'智能聚合',time:now
-      });
-    }
-  }
-  
-  // 3. 从指数数据生成市场概况热点（1-2条）
-  if(indexData){
-    const sh=indexData.sh;
-    const sz=indexData.sz;
-    const cy=indexData.cy;
-    if(sh||sz){
-      const shCh=sh?parseFloat(sh.ch):0;
-      const trend=shCh>1?'强势上攻':shCh>0?'小幅上涨':shCh>-1?'窄幅震荡':'回调下跌';
-      const volNote=indexData.volNote||'';
-      topics.push({
-        title:'⚪ 大盘'+trend+'：沪指'+(shCh>=0?'+':'')+(shCh||0).toFixed(2)+'%'+
-          (cy?'，创业板指'+(cy.ch>=0?'+':'')+parseFloat(cy.ch).toFixed(2)+'%':''),
-        summary:'今日A股'+trend+volNote+'。'+
-          (sh?'上证指数'+parseFloat(sh.price).toFixed(0)+'点，涨跌'+shCh.toFixed(2)+'%。':'')+
-          (sz?'深证成指'+parseFloat(sz.price).toFixed(0)+'点。':'')+
-          '涨停个股集中在异动板块中。',
-        tags:['大盘行情',trend,'市场概况'],
-        hot:'🌐 全球',source:'实时行情',time:now
-      });
-    }
-  }
-  
-  // 4. 从涨停原因中提取高频关键词生成热点（补充到12条）
-  if(topics.length<12){
-    // 从异动板块的 catalyst 中提取关键主题
-    const allCatalysts=alerts.map(a=>a.catalyst||'').filter(Boolean).join('；');
-    const allKeywords=alerts.flatMap(a=>a.keywords||[]);
-    const kwCount={};
-    for(const kw of allKeywords){
-      if(kw&&kw.length>=2)kwCount[kw]=(kwCount[kw]||0)+1;
-    }
-    const topKW=Object.entries(kwCount).sort((a,b)=>b[1]-a[1]).slice(0,5);
+// ===== 从同花顺热股榜（CORS✅）聚合热门话题 =====
+// 同花顺热股榜返回每只热股的概念标签(concept_tag)和热度标签(popularity_tag)
+// 通过聚合概念标签 → 得出当前论坛讨论最热的概念/话题
+async function fetchHotTopicsFromTHS(){
+  try{
+    const ctrl=new AbortController();
+    const t=setTimeout(()=>ctrl.abort(),8000);
+    const r=await fetch('https://dq.10jqka.com.cn/fuyao/hot_list_data/out/hot_list/v1/stock?stock_type=a&type=hour&list_type=normal',{signal:ctrl.signal});
+    clearTimeout(t);
+    if(!r.ok)return null;
+    const d=await r.json();
+    const stocks=(d.data&&d.data.stock_list)||[];
+    if(!stocks.length)return null;
     
-    if(topKW.length>0){
-      const hotKW=topKW.map(([k,c])=>k+'('+c+'次)').join('、');
+    const now=nowTimeStr();
+    
+    // 1. 按概念标签聚合，统计每个概念的热度
+    const conceptHeat={}; // {conceptName: {totalRate, stocks:[], count, topTags:[]}}
+    for(const s of stocks){
+      const concepts=s.tag?.concept_tag||[];
+      const popTag=s.tag?.popularity_tag||'';
+      const rate=parseFloat(s.rate)||0;
+      for(const c of concepts){
+        if(!conceptHeat[c])conceptHeat[c]={totalRate:0,stocks:[],count:0,popTags:new Set()};
+        conceptHeat[c].totalRate+=rate;
+        conceptHeat[c].count++;
+        conceptHeat[c].stocks.push({name:s.name,code:s.code,ch:s.rise_and_fall,popTag});
+        if(popTag)conceptHeat[c].popTags.add(popTag);
+      }
+    }
+    
+    // 2. 按总热度排序，取前10个概念
+    const sorted=Object.entries(conceptHeat)
+      .sort((a,b)=>b[1].totalRate-a[1].totalRate)
+      .slice(0,10);
+    
+    // 3. 生成话题卡片
+    const topics=[];
+    for(let i=0;i<sorted.length;i++){
+      const [concept,data]=sorted[i];
+      const topStocks=data.stocks.slice(0,3);
+      const stockStr=topStocks.map(s=>s.name+(s.ch>=0?'+':'')+(s.ch||0).toFixed(1)+'%').join('、');
+      const popStr=[...data.popTags].slice(0,2).join('，');
+      const hot=i===0?'🔥 最热':i<=2?'📈 热议':i<=5?'💬 关注':'🌐 全球';
+      const emoji=i===0?'🔴 ':i<=2?'🟡 ':i<=5?'🟢 ':'⚪ ';
+      
       topics.push({
-        title:'⚪ 今日炒作关键词：'+topKW.map(([k])=>k).join('、'),
-        summary:'今日市场炒作主线：'+hotKW+'。'+
-          (allCatalysts?'催化事件：'+allCatalysts.slice(0,80)+'...':''),
-        tags:[...topKW.map(([k])=>k).slice(0,3),'炒作主线'],
-        hot:'💬 关注',source:'关键词聚合',time:now
+        title:emoji+concept+'：'+data.count+'只热股上榜'+(popStr?'（'+popStr+'）':''),
+        summary:concept+'概念共'+data.count+'只个股登上同花顺热股榜。'+
+          (popStr?'热度标签：'+popStr+'。':'')+
+          '热门个股：'+stockStr+'。',
+        tags:[concept,...data.stocks.slice(0,2).map(s=>s.name)],
+        hot,source:'同花顺热股榜',time:now
       });
     }
-  }
-  
-  // 补充到12条
-  while(topics.length<12){
+    
+    // 4. 补充大盘和市场概况（1-2条）
+    const totalStocks=stocks.length;
+    const upStocks=stocks.filter(s=>(s.rise_and_fall||0)>0).length;
+    const downStocks=stocks.filter(s=>(s.rise_and_fall||0)<0).length;
+    const trend=upStocks>downStocks*1.5?'偏多':upStocks>downStocks?'震荡偏多':downStocks>upStocks*1.5?'偏空':'震荡';
+    
     topics.push({
-      title:'⚪ 持续关注：AI算力+半导体国产替代+新能源',
-      summary:'中长期主线不变：AI算力基建、半导体设备材料国产替代、新能源产业链。市场轮动中把握低位布局机会。',
-      tags:['AI算力','半导体','新能源','中长期'],
-      hot:'💬 关注',source:'策略提示',time:now
+      title:'⚪ 全市场热度：'+totalStocks+'只热股，'+trend+'格局',
+      summary:'同花顺热股榜TOP100中，上涨'+upStocks+'只、下跌'+downStocks+'只，市场情绪'+
+        (trend==='偏多'?'偏乐观':trend==='偏空'?'偏谨慎':'中性')+
+        '。最热概念：'+sorted.slice(0,3).map(([c])=>c).join('、')+'。',
+      tags:['市场热度',trend,'热股榜'],
+      hot:'🌐 全球',source:'同花顺',time:now
     });
+    
+    // 补充到12条
+    while(topics.length<12){
+      topics.push({
+        title:'⚪ 持续关注：AI算力+半导体国产替代+新能源',
+        summary:'中长期主线不变：AI算力基建、半导体设备材料国产替代、新能源产业链。市场轮动中把握低位布局机会。',
+        tags:['AI算力','半导体','新能源','中长期'],
+        hot:'💬 关注',source:'策略提示',time:now
+      });
+    }
+    
+    return topics.slice(0,12);
+  }catch(e){
+    console.warn('同花顺热股榜抓取失败:',e.message);
+    return null;
   }
-  
-  return topics.slice(0,12);
+}
+
+// ===== 从东方财富push2热门板块聚合热门话题（浏览器端可用） =====
+async function fetchHotTopicsFromEM(){
+  try{
+    // push2 热门板块接口（浏览器端可用）
+    const ctrl=new AbortController();
+    const t=setTimeout(()=>ctrl.abort(),8000);
+    const r=await fetch('https://push2.eastmoney.com/api/qt/clist/get?pn=1&pz=20&po=1&np=1&fltt=2&invt=2&fid=f3&fs=m:90+t:1&fields=f12,f14,f2,f3,f104,f105,f128,f140',{signal:ctrl.signal});
+    clearTimeout(t);
+    if(!r.ok)return null;
+    const d=await r.json();
+    const boards=(d.data&&d.data.diff)||[];
+    if(!boards.length)return null;
+    
+    const now=nowTimeStr();
+    const topics=[];
+    
+    // 按涨幅排序取前12
+    const sorted=boards.sort((a,b)=>(parseFloat(b.f3)||0)-(parseFloat(a.f3)||0));
+    for(let i=0;i<Math.min(12,sorted.length);i++){
+      const b=sorted[i];
+      const name=b.f14||'';
+      const ch=parseFloat(b.f3)||0;
+      const leadName=b.f128||''; // 领涨股
+      const leadCh=parseFloat(b.f140)||0; // 领涨股涨幅
+      const hot=i===0?'🔥 最热':i<=2?'📈 热议':i<=5?'💬 关注':'🌐 全球';
+      const emoji=i===0?'🔴 ':i<=2?'🟡 ':i<=5?'🟢 ':'⚪ ';
+      
+      topics.push({
+        title:emoji+name+'板块均涨幅'+(ch>=0?'+':'')+ch.toFixed(2)+'%',
+        summary:name+'板块今日均涨幅'+(ch>=0?'+':'')+ch.toFixed(2)+'%'+
+          (leadName?'，领涨股：'+leadName+(leadCh>=0?'+':'')+leadCh.toFixed(2)+'%':'')+
+          '。市场资金持续关注中。',
+        tags:[name,leadName||'','热门板块'],
+        hot,source:'东方财富',time:now
+      });
+    }
+    
+    return topics.slice(0,12);
+  }catch(e){
+    console.warn('东方财富热门板块抓取失败:',e.message);
+    return null;
+  }
+}
+
+// 获取热点话题：同花顺优先 → 东方财富兜底 → fallback
+async function fetchLiveHotTopics(){
+  // 先试同花顺（CORS ✅）
+  let topics=await fetchHotTopicsFromTHS();
+  if(topics&&topics.length>=8){
+    liveHotTopics=topics;
+    return topics;
+  }
+  // 再试东方财富push2（浏览器端可用）
+  topics=await fetchHotTopicsFromEM();
+  if(topics&&topics.length>=8){
+    liveHotTopics=topics;
+    return topics;
+  }
+  // fallback
+  const ts=nowTimeStr();
+  return HOT_TOPICS_FALLBACK.map(t=>({...t,time:t.time||ts}));
 }
 
 function renderHotTopics(topics){
   const el=document.getElementById('hot-topics');
   if(!el)return;
   if(!topics||!topics.length){
-    // 如果没有任何数据，用fallback渲染（时间戳更新为当前）
     const ts=nowTimeStr();
     topics=HOT_TOPICS_FALLBACK.map(t=>({...t,time:t.time||ts}));
   }
@@ -3861,11 +3909,11 @@ function renderMarketDist(data){
 }
 
 async function updateHotData(){
-  // 用fallback渲染（时间戳会自动更新为当前时间）
-  renderHotTopics(null);
+  // 异步获取实时热点
+  const topics=await fetchLiveHotTopics();
+  renderHotTopics(topics);
   const indexDetail=await fetchIndexDetail();
   renderIndexDetail(indexDetail);
-  // 从已有的 marketOverview 数据渲染市场概况
   if(lastMarketData)renderMarketDist(lastMarketData);
 }
 
@@ -3874,8 +3922,11 @@ function renderMining(){const el=document.getElementById('mining-list'),bd=docum
 
 function toast(msg,type){const e=document.createElement('div');e.className='toast '+type;e.textContent=msg;document.getElementById('toast').appendChild(e);setTimeout(()=>e.remove(),5000)}
 document.addEventListener('DOMContentLoaded',()=>{
-  // 先用fallback渲染，时间戳自动更新为当前时间
+  // 先用fallback渲染，然后异步获取实时热点
   renderHotTopics(null);
+  fetchLiveHotTopics().then(topics=>{
+    if(topics&&topics.length>=8)renderHotTopics(topics);
+  });
   
   const st=document.getElementById('st'),si=document.getElementById('si');
   let isFirstScan=true;
