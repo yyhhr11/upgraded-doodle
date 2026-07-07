@@ -2737,6 +2737,154 @@ function getKeywords(name){
 }
 function getCatalyst(name){for(const[k,v]of Object.entries(CATALYSTS)){if(name.includes(k))return v}return'📰 催化：市场资金聚焦+板块轮动+技术面突破';}
 
+// ===== 第一层：实时查询大涨股上涨原因（从东方财富新闻快讯提取概念）=====
+// 概念关键词→标准概念名 映射表
+const CONCEPT_KEYWORDS={
+  // AI/算力
+  '交换机':['数据中心交换机'],'CPO':['CPO概念'],'光模块':['CPO概念'],'光芯片':['CPO概念'],'硅光':['CPO概念'],
+  '算力':['算力概念'],'AI服务器':['算力概念'],'智算':['算力概念'],'超算':['算力概念'],
+  '液冷':['液冷概念'],'散热':['液冷概念'],'冷却':['液冷概念'],
+  '铜缆':['铜缆高速连接'],'DAC':['铜缆高速连接'],'AEC':['铜缆高速连接'],
+  'AI芯片':['AI芯片'],'GPU':['AI芯片'],'NPU':['AI芯片'],'昇腾':['AI芯片'],'寒武纪':['AI芯片'],
+  '数据中心':['东数西算'],'IDC':['东数西算'],'数据港':['东数西算'],
+  'ChatGPT':['ChatGPT概念'],'大模型':['ChatGPT概念'],'AI应用':['ChatGPT概念'],'AIGC':['ChatGPT概念'],
+  // 半导体
+  '先进封装':['先进封装(Chiplet)'],'Chiplet':['先进封装(Chiplet)'],'CoWoS':['先进封装(Chiplet)'],'封测':['先进封装(Chiplet)'],
+  'HBM':['存储芯片(HBM)'],'存储芯片':['存储芯片(HBM)'],'DRAM':['存储芯片(HBM)'],'NAND':['存储芯片(HBM)'],
+  '光刻':['光刻机(胶)'],'光刻胶':['光刻机(胶)'],'掩模':['光刻机(胶)'],
+  'IGBT':['IGBT/功率半导体'],'功率半导体':['IGBT/功率半导体'],'碳化硅':['第三代半导体(SiC/GaN)'],'SiC':['第三代半导体(SiC/GaN)'],'GaN':['第三代半导体(SiC/GaN)'],
+  '半导体设备':['晶圆设备'],'刻蚀':['晶圆设备'],'薄膜':['晶圆设备'],'晶圆':['晶圆设备'],
+  'EDA':['EDA概念'],'RISC-V':['EDA概念'],
+  // 机器人/制造
+  '机器人':['人形机器人'],'减速器':['人形机器人'],'具身智能':['人形机器人'],'Optimus':['人形机器人'],
+  '低空':['低空经济'],'eVTOL':['低空经济'],'飞行汽车':['低空经济'],
+  '工业母机':['工业母机'],'数控':['工业母机'],
+  // 航天/军工
+  '商业航天':['商业航天'],'卫星':['商业航天'],'火箭':['商业航天'],'星网':['商业航天'],'千帆':['商业航天'],
+  '军工':['军工'],'中航':['军工'],'航发':['军工'],
+  // 新能源
+  '锂电池':['锂电池'],'锂电':['锂电池'],'磷酸铁锂':['锂电池'],'电解液':['锂电池'],'正极':['锂电池'],'负极':['锂电池'],
+  '固态电池':['固态电池'],
+  '光伏':['光伏设备'],'TOPCon':['光伏设备'],'HJT':['光伏设备'],'钙钛矿':['钙钛矿电池'],
+  '储能':['储能'],'氢能':['氢能源'],'氢燃料':['氢能源'],'加氢':['氢能源'],
+  '特高压':['特高压'],'充电桩':['充电桩'],
+  // 新能源车/汽车
+  '智能驾驶':['智能驾驶'],'自动驾驶':['智能驾驶'],'FSD':['智能驾驶'],'L3':['智能驾驶'],'域控制':['智能驾驶'],
+  '汽车零部件':['汽车零部件'],'热管理':['汽车零部件'],'一体化压铸':['汽车零部件'],
+  // 新材料
+  '复合铜箔':['复合集流体(PET铜箔)'],'PET铜箔':['复合集流体(PET铜箔)'],'复合集流体':['复合集流体(PET铜箔)'],
+  'MLCC':['MLCC概念'],'被动元件':['MLCC概念'],'钽电容':['MLCC概念'],
+  'PCB':['PCB概念'],'覆铜板':['PCB概念'],'HDI':['PCB概念'],
+  '玻璃基板':['玻璃基板'],'ABF':['ABF载板'],
+  // 有色/资源
+  '稀土':['稀土永磁'],'黄金':['黄金概念'],'金价':['黄金概念'],
+  '锂矿':['锂矿概念'],'碳酸锂':['锂矿概念'],
+  '钨':['小金属'],'钼':['小金属'],'锗':['小金属'],'铟':['小金属'],'锡':['小金属'],
+  '铜':['工业金属'],'铝':['工业金属'],'锌':['工业金属'],
+  // 化工
+  '磷化工':['磷化工'],'氟化工':['氟化工'],'钛白粉':['钛白粉'],
+  '电子化学品':['电子化学品'],'湿电子':['电子化学品'],
+  // 医药
+  '创新药':['创新药'],'ADC':['创新药'],'GLP-1':['创新药'],'CAR-T':['CAR-T细胞疗法'],
+  'CRO':['CRO'],'CDMO':['CRO'],'CXO':['CRO'],
+  '中药':['中药'],'医疗器械':['医疗器械'],
+  // 消费
+  '白酒':['白酒'],'食品饮料':['食品饮料'],'猪肉':['猪肉概念'],'医美':['医美概念'],'家电':['家电行业'],
+  // 金融
+  '券商':['券商概念'],'保险':['保险'],
+  // 其他热点
+  '脑机':['脑机接口'],'核聚变':['可控核聚变'],'物理AI':['物理AI'],
+  '消费电子':['消费电子'],'手机':['消费电子'],'折叠屏':['消费电子'],
+  '中字头':['中字头'],'国企改革':['中字头'],'央企':['中字头'],
+  // 化学/制药通用
+  '化学试剂':['电子化学品'],'原料药':['化学制药'],'中间体':['化学制药'],
+  // 天然气/LNG
+  'LNG':['氢能源'],'天然气':['氢能源'],'加气站':['氢能源'],
+  // 铜箔
+  '铜箔':['复合集流体(PET铜箔)'],'电子铜箔':['复合集流体(PET铜箔)'],'锂电铜箔':['复合集流体(PET铜箔)'],
+  // 连接器
+  '连接器':['铜缆高速连接'],
+};
+
+// 从东方财富个股新闻快讯中推断上涨概念
+async function fetchRisingReason(code,name){
+  // 尝试获取个股最新的新闻标题（涨停原因通常在前几条新闻中）
+  const secid=(code.startsWith('6')?'1.'+code:'0.'+code);
+  const url='https://push2.eastmoney.com/api/qt/stock/get?invt=2&fltt=2&fields=f12,f14,f136&secid='+secid;
+  try{
+    const ctrl=new AbortController();
+    const t=setTimeout(()=>ctrl.abort(),5000);
+    const r=await fetch(url,{signal:ctrl.signal});
+    clearTimeout(t);
+    if(!r.ok)return null;
+    const d=await r.json();
+    const reason=d?.data?.f136;
+    if(reason&&reason!=='-'){
+      // f136有时包含涨停原因描述，从中提取概念
+      const concepts=extractConcepts(reason);
+      if(concepts.length>0)return concepts;
+    }
+  }catch(e){}
+  
+  // 方案2：从东方财富个股资讯API获取最新新闻标题
+  try{
+    const newsUrl='https://push2.eastmoney.com/api/qt/stock/get?invt=2&fltt=2&fields=f12,f14,f148&secid='+secid;
+    const ctrl2=new AbortController();
+    const t2=setTimeout(()=>ctrl2.abort(),5000);
+    const r2=await fetch(newsUrl,{signal:ctrl2.signal});
+    clearTimeout(t2);
+    if(r2.ok){
+      const d2=await r2.json();
+      const newsTitle=d2?.data?.f148;
+      if(newsTitle&&newsTitle!=='-'){
+        const concepts=extractConcepts(newsTitle);
+        if(concepts.length>0)return concepts;
+      }
+    }
+  }catch(e){}
+  
+  return null; // 无法从实时数据获取，回退到后续层级
+}
+
+// 从文本中提取概念关键词
+function extractConcepts(text){
+  if(!text)return[];
+  const concepts=[];
+  const seenConcept=new Set();
+  for(const[kw,conceptList]of Object.entries(CONCEPT_KEYWORDS)){
+    if(text.includes(kw)){
+      for(const c of conceptList){
+        if(!seenConcept.has(c)){
+          concepts.push(c);
+          seenConcept.add(c);
+        }
+      }
+    }
+  }
+  return concepts;
+}
+
+// 批量查询大涨股的上涨原因（限制并发数，避免请求过多）
+async function batchFetchReasons(risingStocks){
+  const results={};
+  // 分批查询，每批5只，避免触发API限流
+  const batchSize=5;
+  for(let i=0;i<risingStocks.length;i+=batchSize){
+    const batch=risingStocks.slice(i,i+batchSize);
+    const promises=batch.map(async s=>{
+      const concepts=await fetchRisingReason(s.c,s.n);
+      return{c:s.c,concepts};
+    });
+    const batchResults=await Promise.allSettled(promises);
+    for(const r of batchResults){
+      if(r.status==='fulfilled'&&r.value&&r.value.concepts&&r.value.concepts.length>0){
+        results[r.value.c]=r.value.concepts;
+      }
+    }
+  }
+  return results;
+}
+
 // ===== API =====
 async function fetchBoard(code){const u='https://push2.eastmoney.com/api/qt/clist/get?fid=f3&po=1&pz=200&pn=1&np=1&fltt=2&invt=2&fs=b:'+code+'&fields=f2,f3,f8,f12,f14';for(let retry=0;retry<2;retry++){try{const ctrl=new AbortController();const t=setTimeout(()=>ctrl.abort(),12000);const r=await fetch(u,{signal:ctrl.signal});clearTimeout(t);if(!r.ok){if(retry<1)continue;return null}const d=await r.json();if(d?.data?.diff)return d.data.diff.map(i=>({c:i.f12,n:i.f14,p:parseFloat(i.f2||0),ch:parseFloat(i.f3||0),amt:parseFloat(i.f8||0)}))}catch(e){if(retry<1)continue;return null}}return null;}
 
@@ -2875,47 +3023,68 @@ async function scan(){
     return;
   }
   
-  // === 第2步：第一轮扫描——收集所有大涨股及其多概念标签 ===
-  const stockTags={}; // {code: [tag1, tag2, ...]}  每只大涨股的所有可能概念
-  const tagCount={};  // {tag: count}  每个标签下的大涨股数量
+  // === 第2步：收集所有大涨股（先收集，再统一归类）===
   const seen=new Set();
-  const allRising={}; // 所有大涨股详情(包括未归类的)，用于后续独立大涨股展示
-  const unclassified=[]; // 无法归类的个股，记录来源板块用于调试
+  const allRising={}; // 所有大涨股详情
+  const risingList=[]; // 大涨股列表（用于批量查询）
   
   for(const br of boardResults){
     for(const s of br.cons){
       if(!s.ch||isNaN(s.ch)||s.ch<6||seen.has(s.c)||/^[89]/.test(s.c))continue;
       seen.add(s.c);
       allRising[s.c]={c:s.c,n:s.n,ch:s.ch,amt:s.amt};
-      
-      // 获取该股的所有概念标签（一对多）
-      // 优先级：STOCK_CONCEPT_TAGS（手动精确标注）> inferConceptByName（名称推断）
-      // 不再使用东方财富板块名兜底——粗粒度分类会导致归类错误
-      let tags=STOCK_CONCEPT_TAGS[s.c];
-      if(!tags||!tags.length){
-        const inferred=inferConceptByName(s.c,s.n);
-        if(inferred){
-          tags=[inferred];
-        }else{
-          // 无法归类，记录但不强制分配
-          unclassified.push({c:s.c,n:s.n,ch:s.ch,board:br.name});
-          tags=[];
-        }
-      }
-      if(!tags||!tags.length)continue; // 无法归类，跳过（进入独立大涨股列表）
-      stockTags[s.c]={name:s.n,ch:s.ch,tags:tags,amt:s.amt};
-      
-      // 每个标签计数+1
-      for(const t of tags){
-        tagCount[t]=(tagCount[t]||0)+1;
-      }
+      risingList.push({c:s.c,n:s.n,ch:s.ch});
     }
   }
-  // 输出无法归类的个股信息（调试用）
-  if(unclassified.length>0){
-    console.log('⚠ 无法归类的个股('+unclassified.length+'只):',unclassified.map(u=>u.n+'('+u.board+')').join(', '));
+  si.textContent=seen.size+'只大涨股 · 查询上涨逻辑...';
+  
+  // === 第2.1步：第一层归类——实时查询大涨股上涨原因（最高优先级）===
+  const liveReasons=await batchFetchReasons(risingList);
+  const liveClassified=Object.keys(liveReasons).length;
+  if(liveClassified>0){
+    console.log('✅ 实时查询成功归类 '+liveClassified+' 只大涨股');
   }
-  si.textContent=seen.size+'只大涨股';
+  
+  // === 第2.2步：第二~四层归类——静态标签+名称推断+兜底 ===
+  const stockTags={}; // {code: [tag1, tag2, ...]}
+  const tagCount={};
+  const unclassified=[];
+  
+  for(const s of risingList){
+    let tags=null;
+    
+    // 第一层：实时查询结果（最高优先级）
+    if(liveReasons[s.c]&&liveReasons[s.c].length>0){
+      tags=liveReasons[s.c];
+    }
+    
+    // 第二层：STOCK_CONCEPT_TAGS（手动精确标注）
+    if(!tags||!tags.length){
+      tags=STOCK_CONCEPT_TAGS[s.c];
+    }
+    
+    // 第三层：inferConceptByName（名称推断）
+    if(!tags||!tags.length){
+      const inferred=inferConceptByName(s.c,s.n);
+      if(inferred)tags=[inferred];
+    }
+    
+    // 第四层：无法归类，记录
+    if(!tags||!tags.length){
+      unclassified.push(s);
+      continue;
+    }
+    
+    stockTags[s.c]={name:s.n,ch:s.ch,tags:tags,amt:allRising[s.c]?.amt||0};
+    for(const t of tags){
+      tagCount[t]=(tagCount[t]||0)+1;
+    }
+  }
+  
+  if(unclassified.length>0){
+    console.log('⚠ 无法归类的个股('+unclassified.length+'只):',unclassified.map(u=>u.n).join(', '));
+  }
+  si.textContent=seen.size+'只大涨股 · '+Object.keys(stockTags).length+'已归类';
   
   // === 第2.5步：第二轮归属——每只大涨股选当前最热的标签作为当前炒作概念 ===
   // 同一只股票可以出现在多个概念中，但优先归属到"大涨股最多"的那个概念
