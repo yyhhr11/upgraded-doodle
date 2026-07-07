@@ -2825,7 +2825,7 @@ async function scan(){
   
   for(const br of boardResults){
     for(const s of br.cons){
-      if(s.ch<6||seen.has(s.c)||/^[89]/.test(s.c))continue;
+      if(!s.ch||isNaN(s.ch)||s.ch<6||seen.has(s.c)||/^[89]/.test(s.c))continue;
       seen.add(s.c);
       allRising[s.c]={c:s.c,n:s.n,ch:s.ch,amt:s.amt};
       
@@ -2933,7 +2933,7 @@ async function scan(){
     // 始终拉取NEW_CONCEPTS的独立个股行情（用于补充BOARDS遗漏的个股）
     const qs=await fetchStockQuote(nd.stocks);
     if(!qs||!qs.length)continue;
-    const risingStocks=qs.filter(s=>s.ch>=6);
+    const risingStocks=qs.filter(s=>s.ch&&s.ch>=6&&!isNaN(s.ch));
     if(risingStocks.length<3)continue;
     const avg=risingStocks.reduce((s,x)=>s+x.ch,0)/risingStocks.length;
     const lups=risingStocks.filter(x=>x.ch>=9.5).length;
@@ -3291,6 +3291,7 @@ function renderOrphans(){
   }
   if(bd){bd.style.display='';bd.textContent=S.orphans.length;}
   el.innerHTML=S.orphans.map(s=>{
+    if(!s.ch||isNaN(s.ch))return '';
     const cls=s.ch>0?'up':'down';
     const sign=s.ch>0?'+':'';
     return '<div style="display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid rgba(255,255,255,.04);font-size:12px"><span style="font-weight:600;color:var(--t)">'+s.n+'</span><span style="font-size:11px;color:var(--t3)">'+s.c+'</span><span style="color:var(--'+cls+');font-weight:600">'+sign+s.ch.toFixed(1)+'%</span></div>';
