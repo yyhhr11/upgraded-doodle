@@ -3295,6 +3295,7 @@ async function scan(){
     '🧠脑机接口':['脑机接口'],
     '⚡可控核聚变':['可控核聚变'],
     '🤖AI算力':['算力','CPO','AI芯片','东数西算','铜缆','ChatGPT'],
+    '🖥️AI服务器':['AI服务器'],
     '🧊液冷':['液冷'],
     '🔀交换机':['数据中心交换机'],
     '🤖机器人':['飞行汽车','工业母机'],
@@ -3323,7 +3324,7 @@ async function scan(){
   };
   function boardGroup(name){
     // 细分概念不作为大概念去重，直接按原名返回
-    const subConcepts=['算力金属','钽电容','磷化铟','氧化锆','CPO','氟化工','磷化工','机器人','飞行汽车','工业母机'];
+    const subConcepts=['AI服务器','算力金属','钽电容','磷化铟','氧化锆','CPO','氟化工','磷化工','机器人','飞行汽车','工业母机'];
     if(subConcepts.includes(name))return name;
     for(const[g,ks]of Object.entries(GROUPS)){for(const k of ks){if(name.includes(k))return g}}return'📌其他';
   }
