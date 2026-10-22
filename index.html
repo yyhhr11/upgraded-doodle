@@ -3554,21 +3554,21 @@ function isTrading(){
 function renderAlerts(){const el=document.getElementById('alerts-list');document.getElementById('ab').textContent=S.alerts.length;if(!S.alerts.length){if(el)el.innerHTML='<div class="emp"><div class="ei">👀</div><p>暂无显著异动</p></div>';return}if(el)el.innerHTML=S.alerts.map(a=>{const tops=a.topStocks||[];const cid='mine-'+a.name.replace(/[^a-zA-Z0-9\u4e00-\u9fff]/g,'');return'<div class="acard '+(a.lv==='strong'?'s':a.lv==='medium'?'m':'w')+'" onclick="document.getElementById(&quot;'+cid+'&quot;).scrollIntoView({behavior:&quot;smooth&quot;,block:&quot;start&quot;})"><div class="bn">'+(a.lv==='strong'?'🔴':a.lv==='medium'?'🟡':'🟢')+' '+a.name+'</div><div class="st"><span>涨幅 <span class="sv up">+'+a.change_pct.toFixed(1)+'%</span></span><span>涨停 <span class="sv">'+a.limit_up+'</span>只</span><span>成分 <span class="sv">'+a.total+'</span>只</span><span>得分 <span class="sv">'+a.score+'</span></span></div>'+(a.catalyst?'<div class="reason">'+a.catalyst+'</div>':'')+(tops.length?'<div style="font-size:11px;color:var(--t2);margin-top:6px;line-height:1.6">🔥 领涨：'+tops.map(s=>'<span style="color:'+(s.ch>=9.5?'var(--r)':'var(--t)')+';font-weight:600">'+s.n+'</span><span style="color:'+(s.ch>=0?'var(--r)':'var(--g)')+'">'+(s.ch>=0?'+':'')+s.ch.toFixed(1)+'%</span>').join(' | ')+'</div>':'')+'<div class="ts">'+a.time+'</div></div>'}).join('');}
 
 // ===== 全球热点话题（每日更新） =====
-// 更新日期：2026-10-21
+// 更新日期：2026-10-22
 // 数据来源：东方财富股吧 + 华尔街见闻热门
 const HOT_TOPICS=[
-  {title:'🔴 以色列总理下令推翻伊朗政权',summary:'以色列总理内塔尼亚胡当地时间10月19日晚在接受以色列第14频道电视台采访时称，他向以军、以色列情报和特勤局（摩萨德）以及以军军事情报局下达了“推翻伊朗政权”的指令。',tags:[],hot:'🔥 最热',source:'东方财富股吧',time:'10/21 05:37'},
-  {title:'🔴 A股投资价值逐步提升',summary:'机构分析师称，近些年来，随着国内经济转型升级和资本市场持续改革，A股的投资价值逐步提升。',tags:[],hot:'🔥 最热',source:'东方财富股吧',time:'10/21 05:37'},
-  {title:'🔴 美股AI泡沫论扰动华尔街',summary:'​华尔街担忧美股AI泡沫，但大型科技股预期市盈率约23倍，低于2000年约65倍。真正风险不在估值极端，而在AI基建借贷、市场集中度偏高、盈利预期过厚及席勒市盈率高企，信贷市场或成隐患。',tags:['AI'],hot:'🔥 最热',source:'东方财富股吧',time:'10/21 05:37'},
-  {title:'🔴 美国9月CPI超预期，加息预期大幅升温',summary:'美国劳工统计局10月14日发布的数据显示，美国9月CPI同比上涨3.7%，前值为3.4%，市场预期为3.6%；扣除食品和能源后的核心CPI同比上涨2.6%，前值为2.4%。美国9月CPI环比上涨0.6%，前值为0.4%；核心CPI环比上涨0.3%，前值为0.3%。',tags:['食品','加息'],hot:'🔥 最热',source:'东方财富股吧',time:'10/21 05:37'},
-  {title:'🟡 厄尔尼诺冲击糖供应，印度出手抑制糖价',summary:'据报道，印度已下令国有燃料零售商停止采购以食糖及主要甘蔗原料生产的乙醇，此举可能有助于抑制糖价上涨。该禁令将于印度 11月1日开始的新供应年度生效。今年夏天，干旱的天气冲击了甘蔗产量，推动全球食糖价格飙升。',tags:[],hot:'📈 热议',source:'东方财富股吧',time:'10/21 05:37'},
-  {title:'🟡 美债收益率下跌！美债反弹逻辑是什么？',summary:'当地时间10月15日，美债收益率集体下跌。分析认为，美国国债领涨全球债券市场，因股市抛售加剧了避险情绪且引发了对避险资产的需求。随着AI相关企业融资风险升温、科技股承压，投资者开始重新权衡高利率对经济增长和企业偿债能力的冲击，避险需求推动资金流向国债市场。',tags:['AI'],hot:'📈 热议',source:'东方财富股吧',time:'10/21 05:37'},
-  {title:'🟡 特斯拉“飞车”持续引关注：真能“飞”',summary:'北京时间10月16日，特斯拉第二代 Roadster超跑亮相，搭载与SpaceX联合开发、代号A71的冷气推进系统。车辆可冲上近乎垂直的墙面，吸附在屋顶，能像火箭一样垂直降落，还可完成翻滚动作。机构表示，在特斯拉Roadster身上集成了SpaceX、Optimus、FSD等多个产品线的核心技术，特斯拉在前瞻科技上具备强大的技术复用协同效应。',tags:['Optimus','特斯拉'],hot:'📈 热议',source:'东方财富股吧',time:'10/21 05:37'},
-  {title:'🟡 朱雀二号改进型遥四运载火箭发射成功',summary:'朱雀二号改进型遥四火箭成功实施“一箭十星”发射，商业航天密集组网催化不断。机构认为，产业正由技术验证加速迈向规模化交付。',tags:['航天'],hot:'📈 热议',source:'东方财富股吧',time:'10/21 05:37'},
-  {title:'🟡 红利资产价值凸显：银行强化稳定回报',summary:'近期，高股息板块跑赢大盘，中证红利指数持续走强。工行、农行拟于10月21日派发中期现金红利，21家银行拟派息合计2665.87亿元。机构称银行稳定回报属性强化，红利资产配置价值凸显。',tags:['银行'],hot:'📈 热议',source:'东方财富股吧',time:'10/21 05:37'},
-  {title:'🟢 SpaceX电话会：马斯克称明年ARR上看1万亿，已设委员会探索合并特斯拉',summary:'SpaceX电话会：马斯克称明年ARR上看1万亿，已设委员会探索合并特斯拉',tags:['特斯拉'],hot:'💬 讨论',source:'华尔街见闻',time:'10/21 05:37'},
-  {title:'🟡 SpaceX Q3 AI业务大爆发、收入暴增830%，利润碾压预期，资本支出近200亿｜财报见闻',summary:'SpaceX Q3 AI业务大爆发、收入暴增830%，利润碾压预期，资本支出近200亿｜财报见闻',tags:['AI'],hot:'📈 热议',source:'华尔街见闻',time:'10/21 05:37'},
-  {title:'🟢 美伊“妥协方案”搅动市场，原油走V，道指冲高回落涨1%，盘后SpaceX涨近7%',summary:'美伊“妥协方案”搅动市场，原油走V，道指冲高回落涨1%，盘后SpaceX涨近7%',tags:[],hot:'💬 讨论',source:'华尔街见闻',time:'10/21 05:37'}
+  {title:'🔴 据悉美以已制定新一轮对伊朗打击计划',summary:'媒体10月21日获悉，据美国官员及其他知情人士的消息，美国和以色列军方已制定在美国中期选举结束后再次对伊朗发动军事打击的具体计划。',tags:[],hot:'🔥 最热',source:'东方财富股吧',time:'10/22 05:39'},
+  {title:'🔴 创业板跌破2600点，较6月高点跌超40%',summary:'10月22日，创业板指继续走低，午后跌近3.5%失守2600点，较今年6月的历史高点跌幅超40%。',tags:[],hot:'🔥 最热',source:'东方财富股吧',time:'10/22 05:39'},
+  {title:'🔴 美股AI泡沫论扰动华尔街',summary:'​华尔街担忧美股AI泡沫，但大型科技股预期市盈率约23倍，低于2000年约65倍。真正风险不在估值极端，而在AI基建借贷、市场集中度偏高、盈利预期过厚及席勒市盈率高企，信贷市场或成隐患。',tags:['AI'],hot:'🔥 最热',source:'东方财富股吧',time:'10/22 05:39'},
+  {title:'🟡 厄尔尼诺冲击糖供应，印度出手抑制糖价',summary:'据报道，印度已下令国有燃料零售商停止采购以食糖及主要甘蔗原料生产的乙醇，此举可能有助于抑制糖价上涨。该禁令将于印度 11月1日开始的新供应年度生效。今年夏天，干旱的天气冲击了甘蔗产量，推动全球食糖价格飙升。',tags:[],hot:'📈 热议',source:'东方财富股吧',time:'10/22 05:39'},
+  {title:'🟡 特斯拉“飞车”持续引关注：真能“飞”',summary:'北京时间10月16日，特斯拉第二代 Roadster超跑亮相，搭载与SpaceX联合开发、代号A71的冷气推进系统。车辆可冲上近乎垂直的墙面，吸附在屋顶，能像火箭一样垂直降落，还可完成翻滚动作。机构表示，在特斯拉Roadster身上集成了SpaceX、Optimus、FSD等多个产品线的核心技术，特斯拉在前瞻科技上具备强大的技术复用协同效应。',tags:['Optimus','特斯拉'],hot:'📈 热议',source:'东方财富股吧',time:'10/22 05:39'},
+  {title:'🟡 朱雀二号改进型遥四运载火箭发射成功',summary:'朱雀二号改进型遥四火箭成功实施“一箭十星”发射，商业航天密集组网催化不断。机构认为，产业正由技术验证加速迈向规模化交付。',tags:['航天'],hot:'📈 热议',source:'东方财富股吧',time:'10/22 05:39'},
+  {title:'🟡 Anthropic据悉最快周五公开提交上市申请',summary:'据媒体援引知情人士报道，Anthropic最快将于本周五公开提交S-1招股说明书。此举将标志着这一有望冲击“史上最大IPO”的项目迈出至关重要的下一步。',tags:[],hot:'📈 热议',source:'东方财富股吧',time:'10/22 05:39'},
+  {title:'🟡 红利资产价值凸显：银行强化稳定回报',summary:'近期，高股息板块跑赢大盘，中证红利指数持续走强。工行、农行拟于10月21日派发中期现金红利，21家银行拟派息合计2665.87亿元。机构称银行稳定回报属性强化，红利资产配置价值凸显。',tags:['银行'],hot:'📈 热议',source:'东方财富股吧',time:'10/22 05:39'},
+  {title:'🟡 黄仁勋GTC“开团”：达链扩产潮或启动',summary:'英伟达GTC大会在柏林如期举行。黄仁勋直言，“经过计算机行业数十年的发展，我们现在正处于新一轮工业革命的开端。”黄仁勋宣布将联合一众供应链伙伴，共同提升CPO、基板、先进封装等环节产能。扩产协议涉及三星电机、Amkor（安靠）、IBIDEN、京元电子、矽品精密工业（SPIL）及欣兴电子等多家供应商。',tags:['英伟达','CPO','封装'],hot:'📈 热议',source:'东方财富股吧',time:'10/22 05:39'},
+  {title:'🟢 AI发现PHP严重漏洞！全球75%网站面临威胁，欧洲多国政府网站紧急下线',summary:'AI发现PHP严重漏洞！全球75%网站面临威胁，欧洲多国政府网站紧急下线',tags:['AI'],hot:'💬 讨论',source:'华尔街见闻',time:'10/22 05:39'},
+  {title:'🟢 英伟达GTC柏林：电信基站有望变身AI算力节点，黄仁勋力推欧洲全行业拥抱AI',summary:'英伟达GTC柏林：电信基站有望变身AI算力节点，黄仁勋力推欧洲全行业拥抱AI',tags:['算力'],hot:'💬 讨论',source:'华尔街见闻',time:'10/22 05:39'},
+  {title:'🟢 Meta Q3营收与Q4指引双超预期，上调AI资本开支下限，拟发行无投票权新股｜财报见闻',summary:'Meta Q3营收与Q4指引双超预期，上调AI资本开支下限，拟发行无投票权新股｜财报见闻',tags:['AI'],hot:'💬 讨论',source:'华尔街见闻',time:'10/22 05:39'}
 ];
 
 function renderHotTopics(){
