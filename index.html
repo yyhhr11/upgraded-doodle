@@ -3554,21 +3554,21 @@ function isTrading(){
 function renderAlerts(){const el=document.getElementById('alerts-list');document.getElementById('ab').textContent=S.alerts.length;if(!S.alerts.length){if(el)el.innerHTML='<div class="emp"><div class="ei">👀</div><p>暂无显著异动</p></div>';return}if(el)el.innerHTML=S.alerts.map(a=>{const tops=a.topStocks||[];const cid='mine-'+a.name.replace(/[^a-zA-Z0-9\u4e00-\u9fff]/g,'');return'<div class="acard '+(a.lv==='strong'?'s':a.lv==='medium'?'m':'w')+'" onclick="document.getElementById(&quot;'+cid+'&quot;).scrollIntoView({behavior:&quot;smooth&quot;,block:&quot;start&quot;})"><div class="bn">'+(a.lv==='strong'?'🔴':a.lv==='medium'?'🟡':'🟢')+' '+a.name+'</div><div class="st"><span>涨幅 <span class="sv up">+'+a.change_pct.toFixed(1)+'%</span></span><span>涨停 <span class="sv">'+a.limit_up+'</span>只</span><span>成分 <span class="sv">'+a.total+'</span>只</span><span>得分 <span class="sv">'+a.score+'</span></span></div>'+(a.catalyst?'<div class="reason">'+a.catalyst+'</div>':'')+(tops.length?'<div style="font-size:11px;color:var(--t2);margin-top:6px;line-height:1.6">🔥 领涨：'+tops.map(s=>'<span style="color:'+(s.ch>=9.5?'var(--r)':'var(--t)')+';font-weight:600">'+s.n+'</span><span style="color:'+(s.ch>=0?'var(--r)':'var(--g)')+'">'+(s.ch>=0?'+':'')+s.ch.toFixed(1)+'%</span>').join(' | ')+'</div>':'')+'<div class="ts">'+a.time+'</div></div>'}).join('');}
 
 // ===== 全球热点话题（每日更新） =====
-// 更新日期：2026-10-22
+// 更新日期：2026-10-23
 // 数据来源：东方财富股吧 + 华尔街见闻热门
 const HOT_TOPICS=[
-  {title:'🔴 据悉美以已制定新一轮对伊朗打击计划',summary:'媒体10月21日获悉，据美国官员及其他知情人士的消息，美国和以色列军方已制定在美国中期选举结束后再次对伊朗发动军事打击的具体计划。',tags:[],hot:'🔥 最热',source:'东方财富股吧',time:'10/22 05:39'},
-  {title:'🔴 创业板跌破2600点，较6月高点跌超40%',summary:'10月22日，创业板指继续走低，午后跌近3.5%失守2600点，较今年6月的历史高点跌幅超40%。',tags:[],hot:'🔥 最热',source:'东方财富股吧',time:'10/22 05:39'},
-  {title:'🔴 美股AI泡沫论扰动华尔街',summary:'​华尔街担忧美股AI泡沫，但大型科技股预期市盈率约23倍，低于2000年约65倍。真正风险不在估值极端，而在AI基建借贷、市场集中度偏高、盈利预期过厚及席勒市盈率高企，信贷市场或成隐患。',tags:['AI'],hot:'🔥 最热',source:'东方财富股吧',time:'10/22 05:39'},
-  {title:'🟡 厄尔尼诺冲击糖供应，印度出手抑制糖价',summary:'据报道，印度已下令国有燃料零售商停止采购以食糖及主要甘蔗原料生产的乙醇，此举可能有助于抑制糖价上涨。该禁令将于印度 11月1日开始的新供应年度生效。今年夏天，干旱的天气冲击了甘蔗产量，推动全球食糖价格飙升。',tags:[],hot:'📈 热议',source:'东方财富股吧',time:'10/22 05:39'},
-  {title:'🟡 特斯拉“飞车”持续引关注：真能“飞”',summary:'北京时间10月16日，特斯拉第二代 Roadster超跑亮相，搭载与SpaceX联合开发、代号A71的冷气推进系统。车辆可冲上近乎垂直的墙面，吸附在屋顶，能像火箭一样垂直降落，还可完成翻滚动作。机构表示，在特斯拉Roadster身上集成了SpaceX、Optimus、FSD等多个产品线的核心技术，特斯拉在前瞻科技上具备强大的技术复用协同效应。',tags:['Optimus','特斯拉'],hot:'📈 热议',source:'东方财富股吧',time:'10/22 05:39'},
-  {title:'🟡 朱雀二号改进型遥四运载火箭发射成功',summary:'朱雀二号改进型遥四火箭成功实施“一箭十星”发射，商业航天密集组网催化不断。机构认为，产业正由技术验证加速迈向规模化交付。',tags:['航天'],hot:'📈 热议',source:'东方财富股吧',time:'10/22 05:39'},
-  {title:'🟡 Anthropic据悉最快周五公开提交上市申请',summary:'据媒体援引知情人士报道，Anthropic最快将于本周五公开提交S-1招股说明书。此举将标志着这一有望冲击“史上最大IPO”的项目迈出至关重要的下一步。',tags:[],hot:'📈 热议',source:'东方财富股吧',time:'10/22 05:39'},
-  {title:'🟡 红利资产价值凸显：银行强化稳定回报',summary:'近期，高股息板块跑赢大盘，中证红利指数持续走强。工行、农行拟于10月21日派发中期现金红利，21家银行拟派息合计2665.87亿元。机构称银行稳定回报属性强化，红利资产配置价值凸显。',tags:['银行'],hot:'📈 热议',source:'东方财富股吧',time:'10/22 05:39'},
-  {title:'🟡 黄仁勋GTC“开团”：达链扩产潮或启动',summary:'英伟达GTC大会在柏林如期举行。黄仁勋直言，“经过计算机行业数十年的发展，我们现在正处于新一轮工业革命的开端。”黄仁勋宣布将联合一众供应链伙伴，共同提升CPO、基板、先进封装等环节产能。扩产协议涉及三星电机、Amkor（安靠）、IBIDEN、京元电子、矽品精密工业（SPIL）及欣兴电子等多家供应商。',tags:['英伟达','CPO','封装'],hot:'📈 热议',source:'东方财富股吧',time:'10/22 05:39'},
-  {title:'🟢 AI发现PHP严重漏洞！全球75%网站面临威胁，欧洲多国政府网站紧急下线',summary:'AI发现PHP严重漏洞！全球75%网站面临威胁，欧洲多国政府网站紧急下线',tags:['AI'],hot:'💬 讨论',source:'华尔街见闻',time:'10/22 05:39'},
-  {title:'🟢 英伟达GTC柏林：电信基站有望变身AI算力节点，黄仁勋力推欧洲全行业拥抱AI',summary:'英伟达GTC柏林：电信基站有望变身AI算力节点，黄仁勋力推欧洲全行业拥抱AI',tags:['算力'],hot:'💬 讨论',source:'华尔街见闻',time:'10/22 05:39'},
-  {title:'🟢 Meta Q3营收与Q4指引双超预期，上调AI资本开支下限，拟发行无投票权新股｜财报见闻',summary:'Meta Q3营收与Q4指引双超预期，上调AI资本开支下限，拟发行无投票权新股｜财报见闻',tags:['AI'],hot:'💬 讨论',source:'华尔街见闻',time:'10/22 05:39'}
+  {title:'🔴 据悉美以已制定新一轮对伊朗打击计划',summary:'据美国《纽约时报》21日报道，美国和以色列军方已制定具体计划，准备在11月美国中期选举结束后再次打击伊朗，但美国总统特朗普是否会批准实施这一计划尚不确定。',tags:[],hot:'🔥 最热',source:'东方财富股吧',time:'10/23 05:38'},
+  {title:'🔴 美股AI泡沫论扰动华尔街',summary:'​华尔街担忧美股AI泡沫，但大型科技股预期市盈率约23倍，低于2000年约65倍。真正风险不在估值极端，而在AI基建借贷、市场集中度偏高、盈利预期过厚及席勒市盈率高企，信贷市场或成隐患。',tags:['AI'],hot:'🔥 最热',source:'东方财富股吧',time:'10/23 05:38'},
+  {title:'🟡 特斯拉“飞车”持续引关注：真能“飞”',summary:'北京时间10月16日，特斯拉第二代 Roadster超跑亮相，搭载与SpaceX联合开发、代号A71的冷气推进系统。车辆可冲上近乎垂直的墙面，吸附在屋顶，能像火箭一样垂直降落，还可完成翻滚动作。机构表示，在特斯拉Roadster身上集成了SpaceX、Optimus、FSD等多个产品线的核心技术，特斯拉在前瞻科技上具备强大的技术复用协同效应。',tags:['Optimus','特斯拉'],hot:'📈 热议',source:'东方财富股吧',time:'10/23 05:38'},
+  {title:'🟡 DeepSeek拟在新一轮融资中筹1000亿元',summary:'10月22日，有市场消息称，国内大模型公司DeepSeek（深度求索）拟在最新一轮融资中筹得约1000亿元人民币（约150亿美元），腾讯和宁德时代为本轮出资最多的投资方，交易预计在未来数日内正式完成。',tags:['大模型','宁德时代'],hot:'📈 热议',source:'东方财富股吧',time:'10/23 05:38'},
+  {title:'🟡 Anthropic据悉最快周五公开提交上市申请',summary:'据媒体援引知情人士报道，Anthropic最快将于本周五公开提交S-1招股说明书。此举将标志着这一有望冲击“史上最大IPO”的项目迈出至关重要的下一步。',tags:[],hot:'📈 热议',source:'东方财富股吧',time:'10/23 05:38'},
+  {title:'🟡 美股光通信板块重挫，大跌原因是什么？',summary:'10月23日，市场对AI企业巨额资本开支及融资风险的担忧再度升温，叠加中东地缘局势紧张推动国际油价大涨，光通信、半导体等AI硬件板块集体重挫：Coherent跌超12%、应用光电跌超10%、Lumentum跌超9%。',tags:['AI','光通信','半导体'],hot:'📈 热议',source:'东方财富股吧',time:'10/23 05:38'},
+  {title:'🟡 红利资产价值凸显：银行强化稳定回报',summary:'近期，高股息板块跑赢大盘，中证红利指数持续走强。工行、农行拟于10月21日派发中期现金红利，21家银行拟派息合计2665.87亿元。机构称银行稳定回报属性强化，红利资产配置价值凸显。',tags:['银行'],hot:'📈 热议',source:'东方财富股吧',time:'10/23 05:38'},
+  {title:'🟡 黄仁勋GTC“开团”：达链扩产潮或启动',summary:'英伟达GTC大会在柏林如期举行。黄仁勋直言，“经过计算机行业数十年的发展，我们现在正处于新一轮工业革命的开端。”黄仁勋宣布将联合一众供应链伙伴，共同提升CPO、基板、先进封装等环节产能。扩产协议涉及三星电机、Amkor（安靠）、IBIDEN、京元电子、矽品精密工业（SPIL）及欣兴电子等多家供应商。',tags:['英伟达','CPO','封装'],hot:'📈 热议',source:'东方财富股吧',time:'10/23 05:38'},
+  {title:'🟡 PHP现严重安全漏洞波及全球',summary:'据《华尔街日报》报道，全球广泛使用的编程语言PHP披露严重安全漏洞，可能使黑客控制基于PHP运行的服务器，窃取信息或对访问相关网站的用户发动网络攻击。该漏洞被命名为“PHP2Shell”，由网络安全研究人员借助AI工具发现。',tags:['AI'],hot:'📈 热议',source:'东方财富股吧',time:'10/23 05:38'},
+  {title:'🟡 布油突破112美元！胡塞武装称对沙特发动多轮袭击，目标包括国防部、沙特阿美原油设施',summary:'布油突破112美元！胡塞武装称对沙特发动多轮袭击，目标包括国防部、沙特阿美原油设施',tags:['国防'],hot:'📈 热议',source:'华尔街见闻',time:'10/23 05:38'},
+  {title:'🟢 Meta成“最后一根稻草”，纳指“终于”崩了，美债应声大涨',summary:'Meta成“最后一根稻草”，纳指“终于”崩了，美债应声大涨',tags:[],hot:'💬 讨论',source:'华尔街见闻',time:'10/23 05:38'},
+  {title:'🟢 AI融资担忧重创科技股，纳指跌超2%，10年期美债收益率跌破5%，黄金重挫，原油大涨',summary:'AI融资担忧重创科技股，纳指跌超2%，10年期美债收益率跌破5%，黄金重挫，原油大涨',tags:['AI','黄金'],hot:'💬 讨论',source:'华尔街见闻',time:'10/23 05:38'}
 ];
 
 function renderHotTopics(){
